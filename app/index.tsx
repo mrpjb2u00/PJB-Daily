@@ -1,35 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   StyleSheet,
   Platform,
+  Image,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AuthScreen() {
+export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, isLoading, login, register } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const { user, isLoading } = useAuth();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
+  const webBottomInset = Platform.OS === 'web' ? 34 : 0;
 
   React.useEffect(() => {
     if (!isLoading && user) {
@@ -47,28 +42,25 @@ export default function AuthScreen() {
 
   if (user) return null;
 
-  const handleSubmit = async () => {
-    setError('');
-    setSubmitting(true);
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const result = isLogin
-      ? await login(username, password)
-      : await register(username, password);
-
-    setSubmitting(false);
-    if (result.success) {
-      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
-    } else {
-      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(result.error || 'Something went wrong');
-    }
+  const handleGetStarted = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/auth');
   };
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+
+      <LinearGradient
+        colors={
+          isDark
+            ? ['rgba(240,158,114,0.12)', 'rgba(240,158,114,0)', 'rgba(78,205,196,0.08)']
+            : ['rgba(232,115,74,0.1)', 'rgba(232,115,74,0)', 'rgba(42,157,143,0.06)']
+        }
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
       <Pressable
         onPress={toggleTheme}
@@ -87,148 +79,89 @@ export default function AuthScreen() {
         />
       </Pressable>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
+        style={[
+          styles.centerContent,
+          {
+            paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 60,
+            paddingBottom: (Platform.OS === 'web' ? webBottomInset : insets.bottom) + 40,
+          },
+        ]}
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            {
-              paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 80,
-              paddingBottom: insets.bottom + 40,
-            },
-          ]}
-          keyboardShouldPersistTaps="handled"
-        >
+        <Animated.View entering={FadeIn.duration(800)} style={styles.iconWrap}>
           <LinearGradient
             colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.iconCircle}
           >
-            <Ionicons name="checkmark-done" size={36} color="#fff" />
+            <Ionicons name="checkmark-done" size={48} color="#fff" />
           </LinearGradient>
+        </Animated.View>
 
-          <Text style={[styles.appTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-            To-Dos & Notes
-          </Text>
-          <Text style={[styles.appSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-            by PJB
-          </Text>
+        <Animated.Text
+          entering={FadeInUp.delay(200).duration(600)}
+          style={[styles.title, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
+        >
+          To-Dos & Notes
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeInUp.delay(350).duration(600)}
+          style={[styles.subtitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
+        >
+          by PJB
+        </Animated.Text>
 
-          <View style={styles.form}>
-            <View style={styles.tabRow}>
-              <Pressable
-                onPress={() => { setIsLogin(true); setError(''); }}
-                style={[
-                  styles.tabBtn,
-                  isLogin && { borderBottomColor: theme.accent, borderBottomWidth: 2 },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    {
-                      color: isLogin ? theme.accent : theme.textTertiary,
-                      fontFamily: 'Inter_600SemiBold',
-                    },
-                  ]}
-                >
-                  Sign In
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => { setIsLogin(false); setError(''); }}
-                style={[
-                  styles.tabBtn,
-                  !isLogin && { borderBottomColor: theme.accent, borderBottomWidth: 2 },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    {
-                      color: !isLogin ? theme.accent : theme.textTertiary,
-                      fontFamily: 'Inter_600SemiBold',
-                    },
-                  ]}
-                >
-                  Sign Up
-                </Text>
-              </Pressable>
-            </View>
+        <Animated.View entering={FadeInUp.delay(500).duration(600)} style={styles.featureList}>
+          <FeatureRow icon="checkbox-outline" text="Organize your tasks" theme={theme} />
+          <FeatureRow icon="repeat-outline" text="Set recurring reminders" theme={theme} />
+          <FeatureRow icon="document-text-outline" text="Capture quick notes" theme={theme} />
+        </Animated.View>
 
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.inputBg,
-                  color: theme.text,
-                  borderColor: theme.border,
-                  fontFamily: 'Inter_400Regular',
-                },
-              ]}
-              placeholder="Username"
-              placeholderTextColor={theme.textTertiary}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        <View style={{ flex: 1 }} />
 
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.inputBg,
-                  color: theme.text,
-                  borderColor: theme.border,
-                  fontFamily: 'Inter_400Regular',
-                },
-              ]}
-              placeholder="Password"
-              placeholderTextColor={theme.textTertiary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-
-            {!!error && (
-              <Text style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
-                {error}
-              </Text>
-            )}
-
-            <Pressable
-              onPress={handleSubmit}
-              disabled={submitting || !username.trim() || !password}
-              style={({ pressed }) => [
-                styles.submitBtn,
-                {
-                  opacity: submitting || !username.trim() || !password ? 0.5 : pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                },
-              ]}
+        <Animated.View entering={FadeInDown.delay(700).duration(600)} style={styles.bottomSection}>
+          <Pressable
+            onPress={handleGetStarted}
+            style={({ pressed }) => [
+              styles.getStartedBtn,
+              {
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.getStartedGradient}
             >
-              <LinearGradient
-                colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.submitGradient}
-              >
-                {submitting ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={[styles.submitText, { fontFamily: 'Inter_600SemiBold' }]}>
-                    {isLogin ? 'Sign In' : 'Create Account'}
-                  </Text>
-                )}
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <Text style={[styles.getStartedText, { fontFamily: 'Inter_600SemiBold' }]}>
+                Get Started
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </LinearGradient>
+          </Pressable>
+
+          <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+            Your productivity, simplified
+          </Text>
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+function FeatureRow({ icon, text, theme }: { icon: any; text: string; theme: any }) {
+  return (
+    <View style={styles.featureRow}>
+      <View style={[styles.featureIcon, { backgroundColor: theme.surfaceSecondary }]}>
+        <Ionicons name={icon} size={20} color={theme.accent} />
+      </View>
+      <Text style={[styles.featureText, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -252,69 +185,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: {
-    alignItems: 'center',
-    paddingHorizontal: 28,
-  },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  appTitle: {
-    fontSize: 28,
-    textAlign: 'center',
-  },
-  appSubtitle: {
-    fontSize: 16,
-    marginTop: 4,
-    marginBottom: 36,
-  },
-  form: {
-    width: '100%',
-    maxWidth: 360,
-    gap: 14,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  tabBtn: {
+  centerContent: {
     flex: 1,
     alignItems: 'center',
-    paddingBottom: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    paddingHorizontal: 32,
   },
-  tabText: {
-    fontSize: 15,
+  iconWrap: {
+    marginBottom: 24,
+    marginTop: 40,
   },
-  input: {
-    fontSize: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  errorText: {
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  submitBtn: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  submitGradient: {
-    paddingVertical: 15,
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  submitText: {
+  title: {
+    fontSize: 32,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    marginTop: 6,
+    marginBottom: 48,
+  },
+  featureList: {
+    width: '100%',
+    maxWidth: 320,
+    gap: 18,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  featureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureText: {
     fontSize: 16,
+    flex: 1,
+  },
+  bottomSection: {
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    gap: 16,
+  },
+  getStartedBtn: {
+    width: '100%',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  getStartedGradient: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  getStartedText: {
+    fontSize: 17,
     color: '#fff',
+  },
+  footerText: {
+    fontSize: 13,
   },
 });

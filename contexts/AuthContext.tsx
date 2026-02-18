@@ -3,10 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   username: string;
+  email: string;
 }
 
 interface StoredUser {
   username: string;
+  email: string;
   password: string;
 }
 
@@ -14,7 +16,7 @@ interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -58,19 +60,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!found) {
       return { success: false, error: 'Invalid username or password' };
     }
-    const session: User = { username: found.username };
+    const session: User = { username: found.username, email: found.email };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return { success: true };
   }, [getUsers]);
 
-  const register = useCallback(async (username: string, password: string) => {
+  const register = useCallback(async (username: string, email: string, password: string) => {
     const trimUser = username.trim().toLowerCase();
-    if (!trimUser || !password) {
+    const trimEmail = email.trim().toLowerCase();
+    if (!trimUser || !trimEmail || !password) {
       return { success: false, error: 'Please fill in all fields' };
     }
     if (trimUser.length < 3) {
       return { success: false, error: 'Username must be at least 3 characters' };
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimEmail)) {
+      return { success: false, error: 'Please enter a valid email address' };
     }
     if (password.length < 4) {
       return { success: false, error: 'Password must be at least 4 characters' };
@@ -79,10 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (users.find((u) => u.username === trimUser)) {
       return { success: false, error: 'Username already taken' };
     }
-    const newUser: StoredUser = { username: trimUser, password };
+    if (users.find((u) => u.email === trimEmail)) {
+      return { success: false, error: 'Email already registered' };
+    }
+    const newUser: StoredUser = { username: trimUser, email: trimEmail, password };
     users.push(newUser);
     await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
-    const session: User = { username: trimUser };
+    const session: User = { username: trimUser, email: trimEmail };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return { success: true };
