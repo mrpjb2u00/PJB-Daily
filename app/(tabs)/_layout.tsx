@@ -10,7 +10,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 function NativeTabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="todos">
+      <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "checklist", selected: "checklist" }} md="check-box" />
         <Label>To-Dos</Label>
       </NativeTabs.Trigger>
@@ -63,7 +63,7 @@ function ClassicTabLayout() {
       }}
     >
       <Tabs.Screen
-        name="todos"
+        name="index"
         options={{
           title: "To-Dos",
           tabBarIcon: ({ color, size }) => (
