@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Taskflow",
-    "slug": "taskflow",
+    "name": "To-Dos and Notes by PJB",
+    "slug": "todos-and-notes-by-pjb",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
