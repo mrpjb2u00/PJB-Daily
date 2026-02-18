@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Todo } from '@/contexts/TodoContext';
+import { Todo, RECURRENCE_LABELS } from '@/contexts/TodoContext';
 
 interface TodoItemProps {
   item: Todo;
@@ -16,24 +16,17 @@ interface TodoItemProps {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemProps) {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
-  const checkScale = useSharedValue(item.completed ? 1 : 0);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-  }));
-
-  const checkAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkScale.value }],
-    opacity: checkScale.value,
   }));
 
   const handleToggle = () => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    checkScale.value = item.completed ? withSpring(0) : withSpring(1, { damping: 12 });
     onToggle();
   };
 
@@ -71,26 +64,39 @@ export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemP
             ]}
           >
             {item.completed && (
-              <Animated.View style={checkAnimStyle}>
-                <Ionicons name="checkmark" size={14} color="#fff" />
-              </Animated.View>
+              <Ionicons name="checkmark" size={14} color="#fff" />
             )}
           </View>
         </Pressable>
 
-        <Text
-          style={[
-            styles.title,
-            {
-              color: item.completed ? theme.completedText : theme.text,
-              textDecorationLine: item.completed ? 'line-through' : 'none',
-              fontFamily: 'Inter_500Medium',
-            },
-          ]}
-          numberOfLines={2}
-        >
-          {item.title}
-        </Text>
+        <View style={styles.textArea}>
+          <Text
+            style={[
+              styles.title,
+              {
+                color: item.completed ? theme.completedText : theme.text,
+                textDecorationLine: item.completed ? 'line-through' : 'none',
+                fontFamily: 'Inter_500Medium',
+              },
+            ]}
+            numberOfLines={2}
+          >
+            {item.title}
+          </Text>
+          {item.recurrence !== 'none' && (
+            <View style={[styles.recurrenceBadge, { backgroundColor: theme.accentSecondary + '20' }]}>
+              <Ionicons name="repeat" size={10} color={theme.accentSecondary} />
+              <Text
+                style={[
+                  styles.recurrenceText,
+                  { color: theme.accentSecondary, fontFamily: 'Inter_500Medium' },
+                ]}
+              >
+                {RECURRENCE_LABELS[item.recurrence]}
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.actions}>
           <Pressable
@@ -140,10 +146,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
+  textArea: {
     flex: 1,
+    gap: 4,
+  },
+  title: {
     fontSize: 16,
     lineHeight: 22,
+  },
+  recurrenceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  recurrenceText: {
+    fontSize: 11,
   },
   actions: {
     flexDirection: 'row',

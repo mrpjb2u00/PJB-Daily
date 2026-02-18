@@ -8,7 +8,9 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { TodoProvider } from "@/contexts/TodoContext";
+import { NotesProvider } from "@/contexts/NotesContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,12 +18,19 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="add-task"
         options={{
           presentation: "formSheet",
-          sheetAllowedDetents: [0.4],
+          sheetAllowedDetents: [0.55],
           sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
+        name="edit-note"
+        options={{
+          presentation: "modal",
           headerShown: false,
         }}
       />
@@ -51,9 +60,13 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <KeyboardProvider>
             <ThemeProvider>
-              <TodoProvider>
-                <RootLayoutNav />
-              </TodoProvider>
+              <AuthProvider>
+                <TodoProvider>
+                  <NotesProvider>
+                    <RootLayoutNav />
+                  </NotesProvider>
+                </TodoProvider>
+              </AuthProvider>
             </ThemeProvider>
           </KeyboardProvider>
         </GestureHandlerRootView>

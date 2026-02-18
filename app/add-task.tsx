@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useTodos } from '@/contexts/TodoContext';
+import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
+
+const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'monthly', 'quarterly', '6months', 'yearly'];
 
 export default function AddTaskSheet() {
   const { theme, isDark } = useTheme();
   const { addTodo, updateTodo } = useTodos();
-  const params = useLocalSearchParams<{ id?: string; title?: string }>();
+  const params = useLocalSearchParams<{ id?: string; title?: string; recurrence?: string }>();
   const isEditing = !!params.id;
 
   const [text, setText] = useState(params.title || '');
+  const [recurrence, setRecurrence] = useState<RecurrenceType>((params.recurrence as RecurrenceType) || 'none');
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -25,9 +28,9 @@ export default function AddTaskSheet() {
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     if (isEditing && params.id) {
-      updateTodo(params.id, text);
+      updateTodo(params.id, text, recurrence);
     } else {
-      addTodo(text);
+      addTodo(text, recurrence);
     }
     router.back();
   };
@@ -56,12 +59,53 @@ export default function AddTaskSheet() {
           placeholderTextColor={theme.textTertiary}
           value={text}
           onChangeText={setText}
-          onSubmitEditing={handleSave}
           returnKeyType="done"
           multiline
           maxLength={200}
         />
       </View>
+
+      <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
+        Repeat
+      </Text>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.recurrenceRow}
+      >
+        {RECURRENCE_OPTIONS.map((opt) => {
+          const isActive = recurrence === opt;
+          return (
+            <Pressable
+              key={opt}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                setRecurrence(opt);
+              }}
+              style={[
+                styles.recurrenceChip,
+                {
+                  backgroundColor: isActive ? theme.accent : theme.inputBg,
+                  borderColor: isActive ? theme.accent : theme.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.recurrenceText,
+                  {
+                    color: isActive ? '#fff' : theme.textSecondary,
+                    fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                  },
+                ]}
+              >
+                {RECURRENCE_LABELS[opt]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
 
       <Pressable
         onPress={handleSave}
@@ -100,13 +144,13 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 18,
   },
   inputWrapper: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   input: {
     fontSize: 16,
@@ -116,6 +160,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: 52,
     maxHeight: 120,
+  },
+  label: {
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  recurrenceRow: {
+    gap: 8,
+    paddingBottom: 20,
+  },
+  recurrenceChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  recurrenceText: {
+    fontSize: 13,
   },
   saveButton: {
     flexDirection: 'row',
