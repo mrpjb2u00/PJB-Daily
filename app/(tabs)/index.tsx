@@ -51,9 +51,9 @@ export default function TodosScreen() {
     router.push({ pathname: '/add-task', params: { id: item.id, title: item.title, recurrence: item.recurrence } });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
+    await logout();
     router.replace('/');
   };
 
@@ -157,6 +157,9 @@ export default function TodosScreen() {
           <Pressable
             onPress={handleLogout}
             style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
+            testID="logout-button"
+            accessibilityLabel="Logout"
+            accessibilityRole="button"
           >
             <Ionicons name="log-out-outline" size={18} color={theme.textSecondary} />
           </Pressable>
@@ -248,6 +251,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 20,
     paddingBottom: 16,
+    zIndex: 10,
   },
   greeting: {
     fontSize: 14,

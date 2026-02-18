@@ -1,11 +1,12 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, StyleSheet, View } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 function NativeTabLayout() {
   return (
@@ -85,6 +86,18 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/');
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || !user) {
+    return null;
+  }
+
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout />;
   }

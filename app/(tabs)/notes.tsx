@@ -93,9 +93,9 @@ export default function NotesScreen() {
     router.push({ pathname: '/edit-note', params: { id: note.id, title: note.title, content: note.content } });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
+    await logout();
     router.replace('/');
   };
 
