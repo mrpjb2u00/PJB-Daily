@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,39 +7,64 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodos, Todo } from '@/contexts/TodoContext';
+import { useTodos, Todo, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
 import TodoItem from '@/components/TodoItem';
+
+type FilterOption = 'all' | RecurrenceType;
+
+const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
+  { value: 'all', label: 'All Tasks' },
+  { value: 'none', label: 'One-time' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: '6months', label: 'Every 6 Months' },
+  { value: 'yearly', label: 'Yearly' },
+];
 
 export default function TodosScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { todos, toggleTodo, deleteTodo, isLoading } = useTodos();
+  const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [filterBtnLayout, setFilterBtnLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const filterBtnRef = useRef<View>(null);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
+  const filteredTodos = useMemo(() => {
+    if (activeFilter === 'all') return todos;
+    return todos.filter((t) => t.recurrence === activeFilter);
+  }, [todos, activeFilter]);
+
   const { activeTodos, completedTodos, completedCount, totalCount } = useMemo(() => {
-    const active = todos.filter((t) => !t.completed);
-    const completed = todos.filter((t) => t.completed);
+    const active = filteredTodos.filter((t) => !t.completed);
+    const completed = filteredTodos.filter((t) => t.completed);
     return {
       activeTodos: active,
       completedTodos: completed,
       completedCount: completed.length,
-      totalCount: todos.length,
+      totalCount: filteredTodos.length,
     };
-  }, [todos]);
+  }, [filteredTodos]);
 
   const sortedTodos = useMemo(() => [...activeTodos, ...completedTodos], [activeTodos, completedTodos]);
+
+  const activeFilterLabel = FILTER_OPTIONS.find((f) => f.value === activeFilter)?.label || 'All Tasks';
 
   const handleAdd = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -57,7 +82,29 @@ export default function TodosScreen() {
     router.replace('/');
   };
 
+  const handleFilterPress = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    filterBtnRef.current?.measureInWindow((x, y, width, height) => {
+      setFilterBtnLayout({ x, y, width, height });
+      setShowFilterMenu(true);
+    });
+  };
+
+  const handleFilterSelect = (value: FilterOption) => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setActiveFilter(value);
+    setShowFilterMenu(false);
+  };
+
   const progressPercent = totalCount > 0 ? completedCount / totalCount : 0;
+
+  const recurrenceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    todos.forEach((t) => {
+      counts[t.recurrence] = (counts[t.recurrence] || 0) + 1;
+    });
+    return counts;
+  }, [todos]);
 
   const renderHeader = () => (
     <Animated.View entering={FadeInDown.duration(400).delay(100)}>
@@ -82,6 +129,38 @@ export default function TodosScreen() {
           </View>
         </View>
       </LinearGradient>
+
+      <View style={styles.filterRow}>
+        <Pressable
+          ref={filterBtnRef}
+          onPress={handleFilterPress}
+          style={[styles.filterBtn, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
+          testID="filter-dropdown"
+        >
+          <Ionicons name="filter" size={14} color={theme.accent} />
+          <Text
+            style={[styles.filterBtnText, { color: theme.text, fontFamily: 'Inter_500Medium' }]}
+            numberOfLines={1}
+          >
+            {activeFilterLabel}
+          </Text>
+          <Ionicons name="chevron-down" size={14} color={theme.textTertiary} />
+        </Pressable>
+        {activeFilter !== 'all' && (
+          <Pressable
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync();
+              setActiveFilter('all');
+            }}
+            style={[styles.clearFilterBtn, { backgroundColor: theme.accent + '18' }]}
+          >
+            <Ionicons name="close-circle" size={14} color={theme.accent} />
+            <Text style={[styles.clearFilterText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+              Clear
+            </Text>
+          </Pressable>
+        )}
+      </View>
 
       {activeTodos.length > 0 && (
         <Text
@@ -110,12 +189,15 @@ export default function TodosScreen() {
         <Text
           style={[styles.emptyTitle, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}
         >
-          All clear
+          {activeFilter === 'all' ? 'All clear' : 'No tasks found'}
         </Text>
         <Text
           style={[styles.emptyText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}
         >
-          Tap the button below to add your first task
+          {activeFilter === 'all'
+            ? 'Tap the button below to add your first task'
+            : `No ${activeFilterLabel.toLowerCase()} tasks yet`
+          }
         </Text>
       </Animated.View>
     );
@@ -230,6 +312,70 @@ export default function TodosScreen() {
           </LinearGradient>
         </Pressable>
       </Animated.View>
+
+      <Modal
+        visible={showFilterMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFilterMenu(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowFilterMenu(false)}>
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            style={[
+              styles.filterMenu,
+              {
+                backgroundColor: isDark ? '#2A2A2A' : '#FFFFFF',
+                borderColor: theme.border,
+                top: filterBtnLayout.y + filterBtnLayout.height + 4,
+                left: Math.max(16, filterBtnLayout.x),
+              },
+            ]}
+          >
+            {FILTER_OPTIONS.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              const count = opt.value === 'all' ? todos.length : (recurrenceCounts[opt.value] || 0);
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => handleFilterSelect(opt.value)}
+                  style={[
+                    styles.filterMenuItem,
+                    isActive && { backgroundColor: theme.accent + '15' },
+                  ]}
+                >
+                  <View style={styles.filterMenuItemLeft}>
+                    {isActive && <Ionicons name="checkmark" size={16} color={theme.accent} />}
+                    <Text
+                      style={[
+                        styles.filterMenuItemText,
+                        {
+                          color: isActive ? theme.accent : theme.text,
+                          fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_400Regular',
+                          marginLeft: isActive ? 0 : 22,
+                        },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.filterMenuCount,
+                      {
+                        color: isActive ? theme.accent : theme.textTertiary,
+                        fontFamily: 'Inter_500Medium',
+                      },
+                    ]}
+                  >
+                    {count}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -279,7 +425,7 @@ const styles = StyleSheet.create({
   statsCard: {
     borderRadius: 18,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   statsRow: {
     flexDirection: 'row',
@@ -311,6 +457,36 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     color: '#fff',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  filterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  filterBtnText: {
+    fontSize: 13,
+    maxWidth: 120,
+  },
+  clearFilterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  clearFilterText: {
+    fontSize: 12,
   },
   sectionLabel: {
     fontSize: 13,
@@ -351,5 +527,41 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  filterMenu: {
+    position: 'absolute',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingVertical: 6,
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  filterMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  filterMenuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filterMenuItemText: {
+    fontSize: 14,
+  },
+  filterMenuCount: {
+    fontSize: 12,
+    minWidth: 20,
+    textAlign: 'right',
   },
 });

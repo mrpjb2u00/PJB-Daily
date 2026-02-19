@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -11,6 +12,7 @@ const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'monthl
 export default function AddTaskSheet() {
   const { theme, isDark } = useTheme();
   const { addTodo, updateTodo } = useTodos();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id?: string; title?: string; recurrence?: string }>();
   const isEditing = !!params.id;
 
@@ -36,7 +38,11 @@ export default function AddTaskSheet() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={90}
+    >
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
           {isEditing ? 'Edit Task' : 'New Task'}
@@ -73,6 +79,7 @@ export default function AddTaskSheet() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.recurrenceRow}
+        style={styles.recurrenceScroll}
       >
         {RECURRENCE_OPTIONS.map((opt) => {
           const isActive = recurrence === opt;
@@ -107,6 +114,8 @@ export default function AddTaskSheet() {
         })}
       </ScrollView>
 
+      <View style={{ flex: 1 }} />
+
       <Pressable
         onPress={handleSave}
         disabled={!text.trim()}
@@ -116,6 +125,7 @@ export default function AddTaskSheet() {
             backgroundColor: text.trim() ? theme.accent : theme.inputBg,
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
+            marginBottom: Platform.OS === 'web' ? 34 : Math.max(insets.bottom, 16),
           },
         ]}
       >
@@ -132,7 +142,7 @@ export default function AddTaskSheet() {
           {isEditing ? 'Update' : 'Add Task'}
         </Text>
       </Pressable>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -167,15 +177,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 10,
   },
+  recurrenceScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   recurrenceRow: {
     gap: 8,
-    paddingBottom: 20,
+    paddingBottom: 4,
+    alignItems: 'center',
   },
   recurrenceChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   recurrenceText: {
     fontSize: 13,
