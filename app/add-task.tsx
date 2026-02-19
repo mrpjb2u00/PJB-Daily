@@ -114,8 +114,6 @@ export default function AddTaskSheet() {
         })}
       </ScrollView>
 
-      <View style={{ flex: 1 }} />
-
       <Pressable
         onPress={handleSave}
         disabled={!text.trim()}
@@ -125,7 +123,7 @@ export default function AddTaskSheet() {
             backgroundColor: text.trim() ? theme.accent : theme.inputBg,
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
-            marginBottom: Platform.OS === 'web' ? 34 : Math.max(insets.bottom, 16),
+            marginTop: 24,
           },
         ]}
       >
@@ -151,6 +149,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 8,
+    justifyContent: 'flex-start',
   },
   header: {
     alignItems: 'center',
