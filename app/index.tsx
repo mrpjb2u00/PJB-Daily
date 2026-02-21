@@ -109,7 +109,7 @@ export default function SplashScreen() {
           entering={FadeInUp.delay(350).duration(600)}
           style={[styles.subtitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
         >
-          by PJB
+          by PJBStudios
         </Animated.Text>
 
         <Animated.View entering={FadeInUp.delay(500).duration(600)} style={styles.featureList}>

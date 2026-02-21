@@ -119,7 +119,7 @@ export default function AuthScreen() {
             To-Dos & Notes
           </Text>
           <Text style={[styles.appSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-            by PJB
+            by PJBStudios
           </Text>
 
           <View style={styles.form}>
