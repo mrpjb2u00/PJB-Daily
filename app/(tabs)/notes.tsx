@@ -132,7 +132,7 @@ export default function NotesScreen() {
         style={[
           styles.header,
           {
-            paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 12,
+            paddingTop: (Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24)) + 12,
             borderBottomColor: theme.border,
           },
         ]}
