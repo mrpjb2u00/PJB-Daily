@@ -2,7 +2,7 @@
 
 ## Overview
 
-"To-Dos and Notes by PJB" is a cross-platform productivity app built with Expo (React Native) that allows users to manage to-do items and notes. It features user authentication, dark/light theme support, recurring tasks, and a clean modern UI. The app runs on iOS, Android, and web via Expo, with an Express backend server for API support and static file serving.
+"To-Dos & Notes by PJBStudios" is a cross-platform productivity app built with Expo (React Native) that allows users to manage to-do items and notes. It features Supabase-based user authentication, dark/light theme support, recurring tasks, and a clean modern UI. The app runs on iOS, Android, and web via Expo, with an Express backend server for API support and static file serving.
 
 ## User Preferences
 
@@ -16,7 +16,7 @@ Preferred communication style: Simple, everyday language.
 - **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing two main screens: Todos and Notes. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
 - **State Management**: React Context API is used for all app state:
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
-  - `AuthContext` — local user authentication with credentials stored in AsyncStorage (no server-side auth)
+  - `AuthContext` — Supabase authentication (signInWithPassword, signUp, signOut) with session persistence
   - `TodoContext` — CRUD operations for todos with recurrence support, persisted per-user in AsyncStorage
   - `NotesContext` — CRUD operations for notes, persisted per-user in AsyncStorage
 - **Data Persistence**: All user data (auth, todos, notes, theme preference) is stored locally using `@react-native-async-storage/async-storage`. There is no server-side data persistence currently in use despite the database schema being defined.
