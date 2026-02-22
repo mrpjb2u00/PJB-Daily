@@ -48,6 +48,10 @@ export default function AuthScreen() {
 
   if (user) return null;
 
+  const openForgotPasswordSheet = () => {
+    // TODO: implement forgot password bottom sheet
+  };
+
   const handleSubmit = async () => {
     setError('');
     setSubmitting(true);
@@ -253,6 +257,14 @@ export default function AuthScreen() {
                 )}
               </LinearGradient>
             </Pressable>
+
+            {isLogin && (
+              <Pressable onPress={openForgotPasswordSheet} style={{ marginTop: 12, alignItems: 'center' }}>
+                <Text style={{ color: theme.accent, fontFamily: 'Inter_500Medium', fontSize: 14 }}>
+                  Forgot Password?
+                </Text>
+              </Pressable>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
