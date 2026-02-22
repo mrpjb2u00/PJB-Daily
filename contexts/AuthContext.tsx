@@ -15,7 +15,7 @@ interface StoredUser {
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
@@ -50,15 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return [];
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const trimUser = username.trim().toLowerCase();
-    if (!trimUser || !password) {
+  const login = useCallback(async (email: string, password: string) => {
+    const trimEmail = email.trim().toLowerCase();
+    if (!trimEmail || !password) {
       return { success: false, error: 'Please fill in all fields' };
     }
     const users = await getUsers();
-    const found = users.find((u) => u.username === trimUser && u.password === password);
+    const found = users.find((u) => u.email === trimEmail && u.password === password);
     if (!found) {
-      return { success: false, error: 'Invalid username or password' };
+      return { success: false, error: 'Invalid email or password' };
     }
     const session: User = { username: found.username, email: found.email };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));

@@ -54,7 +54,7 @@ export default function AuthScreen() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const result = isLogin
-      ? await login(username, password)
+      ? await login(email, password)
       : await register(username, email, password);
 
     setSubmitting(false);
@@ -68,7 +68,7 @@ export default function AuthScreen() {
   };
 
   const canSubmit = isLogin
-    ? username.trim() && password
+    ? email.trim() && password
     : username.trim() && email.trim() && password;
 
   return (
@@ -164,24 +164,6 @@ export default function AuthScreen() {
               </Pressable>
             </View>
 
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.inputBg,
-                  color: theme.text,
-                  borderColor: theme.border,
-                  fontFamily: 'Inter_400Regular',
-                },
-              ]}
-              placeholder="Username"
-              placeholderTextColor={theme.textTertiary}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
             {!isLogin && (
               <TextInput
                 style={[
@@ -193,16 +175,34 @@ export default function AuthScreen() {
                     fontFamily: 'Inter_400Regular',
                   },
                 ]}
-                placeholder="Email"
+                placeholder="Username"
                 placeholderTextColor={theme.textTertiary}
-                value={email}
-                onChangeText={setEmail}
+                value={username}
+                onChangeText={setUsername}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="email-address"
-                textContentType="emailAddress"
               />
             )}
+
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  color: theme.text,
+                  borderColor: theme.border,
+                  fontFamily: 'Inter_400Regular',
+                },
+              ]}
+              placeholder="Email"
+              placeholderTextColor={theme.textTertiary}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+            />
 
             <TextInput
               style={[
