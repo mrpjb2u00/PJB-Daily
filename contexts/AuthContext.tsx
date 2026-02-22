@@ -1,10 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 import type { Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   username: string;
   email: string;
+}
+
+interface StoredUser {
+  username: string;
+  email: string;
+  password: string;
 }
 
 interface AuthContextValue {
@@ -16,6 +23,9 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const USERS_KEY = '@pjb_users';
+const SESSION_KEY = '@pjb_session';
 
 function sessionToUser(session: Session | null): User | null {
   if (!session?.user) return null;
@@ -31,16 +41,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(sessionToUser(session));
-      setIsLoading(false);
-    });
+    if (supabaseConfigured) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(sessionToUser(session));
+        setIsLoading(false);
+      });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(sessionToUser(session));
-    });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(sessionToUser(session));
+      });
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    } else {
+      AsyncStorage.getItem(SESSION_KEY).then((data) => {
+        if (data) {
+          try { setUser(JSON.parse(data)); } catch {}
+        }
+        setIsLoading(false);
+      });
+    }
+  }, []);
+
+  const getLocalUsers = useCallback(async (): Promise<StoredUser[]> => {
+    const data = await AsyncStorage.getItem(USERS_KEY);
+    if (data) {
+      try { return JSON.parse(data); } catch {}
+    }
+    return [];
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -48,15 +75,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!trimEmail || !password) {
       return { success: false, error: 'Please fill in all fields' };
     }
-    const { error } = await supabase.auth.signInWithPassword({
-      email: trimEmail,
-      password,
-    });
-    if (error) {
-      return { success: false, error: error.message };
+    if (supabaseConfigured) {
+      const { error } = await supabase.auth.signInWithPassword({ email: trimEmail, password });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } else {
+      const users = await getLocalUsers();
+      const found = users.find((u) => u.email === trimEmail && u.password === password);
+      if (!found) return { success: false, error: 'Invalid email or password' };
+      const session: User = { username: found.username, email: found.email };
+      await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      setUser(session);
+      return { success: true };
     }
-    return { success: true };
-  }, []);
+  }, [getLocalUsers]);
 
   const register = useCallback(async (username: string, email: string, password: string) => {
     const trimUser = username.trim().toLowerCase();
@@ -74,21 +106,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (password.length < 6) {
       return { success: false, error: 'Password must be at least 6 characters' };
     }
-    const { error } = await supabase.auth.signUp({
-      email: trimEmail,
-      password,
-      options: {
-        data: { username: trimUser },
-      },
-    });
-    if (error) {
-      return { success: false, error: error.message };
+    if (supabaseConfigured) {
+      const { error } = await supabase.auth.signUp({
+        email: trimEmail,
+        password,
+        options: { data: { username: trimUser } },
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } else {
+      const users = await getLocalUsers();
+      if (users.find((u) => u.username === trimUser)) {
+        return { success: false, error: 'Username already taken' };
+      }
+      if (users.find((u) => u.email === trimEmail)) {
+        return { success: false, error: 'Email already registered' };
+      }
+      const newUser: StoredUser = { username: trimUser, email: trimEmail, password };
+      users.push(newUser);
+      await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
+      const session: User = { username: trimUser, email: trimEmail };
+      await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      setUser(session);
+      return { success: true };
     }
-    return { success: true };
-  }, []);
+  }, [getLocalUsers]);
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (supabaseConfigured) {
+      await supabase.auth.signOut();
+    } else {
+      await AsyncStorage.removeItem(SESSION_KEY);
+    }
     setUser(null);
   }, []);
 

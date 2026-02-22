@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,6 +19,7 @@ import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
@@ -29,6 +31,11 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showForgotSheet, setShowForgotSheet] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
@@ -49,7 +56,29 @@ export default function AuthScreen() {
   if (user) return null;
 
   const openForgotPasswordSheet = () => {
-    // TODO: implement forgot password bottom sheet
+    setResetEmail('');
+    setResetMessage('');
+    setResetError('');
+    setShowForgotSheet(true);
+  };
+
+  const handleResetPassword = async () => {
+    const trimmed = resetEmail.trim().toLowerCase();
+    if (!trimmed) {
+      setResetError('Please enter your email address');
+      return;
+    }
+    setResetError('');
+    setResetMessage('');
+    setResetSubmitting(true);
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmed);
+    setResetSubmitting(false);
+    if (resetErr) {
+      setResetError(resetErr.message);
+    } else {
+      setResetMessage('Check your email for a password reset link.');
+      setTimeout(() => setShowForgotSheet(false), 3000);
+    }
   };
 
   const handleSubmit = async () => {
@@ -268,6 +297,99 @@ export default function AuthScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showForgotSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowForgotSheet(false)}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable
+            style={styles.sheetBackdrop}
+            onPress={() => setShowForgotSheet(false)}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.sheetKeyboard}
+          >
+            <View
+              style={[styles.sheetContent, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
+            >
+              <View style={styles.sheetHandle}>
+                <View style={[styles.sheetHandleBar, { backgroundColor: theme.border }]} />
+              </View>
+
+              <Text style={[styles.sheetTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                Reset Password
+              </Text>
+              <Text style={[styles.sheetDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                Enter your email and we'll send you a reset link.
+              </Text>
+
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.text,
+                    borderColor: theme.border,
+                    fontFamily: 'Inter_400Regular',
+                  },
+                ]}
+                placeholder="Email"
+                placeholderTextColor={theme.textTertiary}
+                value={resetEmail}
+                onChangeText={setResetEmail}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+              />
+
+              {!!resetError && (
+                <Text style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+                  {resetError}
+                </Text>
+              )}
+
+              {!!resetMessage && (
+                <Text style={[styles.successText, { color: '#34C759', fontFamily: 'Inter_500Medium' }]}>
+                  {resetMessage}
+                </Text>
+              )}
+
+              <Pressable
+                onPress={handleResetPassword}
+                disabled={resetSubmitting || !resetEmail.trim()}
+                style={({ pressed }) => [
+                  styles.submitBtn,
+                  {
+                    opacity: resetSubmitting || !resetEmail.trim() ? 0.5 : pressed ? 0.85 : 1,
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
+                    marginTop: 4,
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.submitGradient}
+                >
+                  {resetSubmitting ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={[styles.submitText, { fontFamily: 'Inter_600SemiBold' }]}>
+                      Reset Password
+                    </Text>
+                  )}
+                </LinearGradient>
+              </Pressable>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -355,5 +477,47 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: 16,
     color: '#fff',
+  },
+  successText: {
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  sheetBackdrop: {
+    flex: 1,
+  },
+  sheetKeyboard: {
+    justifyContent: 'flex-end',
+  },
+  sheetContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 28,
+    paddingBottom: 40,
+    minHeight: '50%',
+  },
+  sheetHandle: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  sheetHandleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+  },
+  sheetTitle: {
+    fontSize: 22,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  sheetDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });
