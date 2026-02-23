@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
@@ -63,6 +63,10 @@ export default function AuthScreen() {
   };
 
   const handleResetPassword = async () => {
+    if (!supabaseConfigured) {
+      setResetError('Authentication service is not configured. Please contact the app administrator.');
+      return;
+    }
     const trimmed = resetEmail.trim().toLowerCase();
     if (!trimmed) {
       setResetError('Please enter your email address');
