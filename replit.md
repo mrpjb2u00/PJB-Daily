@@ -16,10 +16,10 @@ Preferred communication style: Simple, everyday language.
 - **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing two main screens: Todos and Notes. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
 - **State Management**: React Context API is used for all app state:
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
-  - `AuthContext` — Supabase authentication (signInWithPassword, signUp, signOut) with session persistence
+  - `AuthContext` — Supabase-only authentication (signInWithPassword, signUp, signOut) with session persistence. No local fallback — requires Supabase to be configured via `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.
   - `TodoContext` — CRUD operations for todos with recurrence support, persisted per-user in AsyncStorage
   - `NotesContext` — CRUD operations for notes, persisted per-user in AsyncStorage
-- **Data Persistence**: All user data (auth, todos, notes, theme preference) is stored locally using `@react-native-async-storage/async-storage`. There is no server-side data persistence currently in use despite the database schema being defined.
+- **Data Persistence**: Todos, notes, and theme preference are stored locally using `@react-native-async-storage/async-storage`. Authentication is handled exclusively by Supabase (no local auth fallback).
 - **Styling**: Custom color system defined in `constants/colors.ts` with light and dark themes. Uses Inter font family loaded via `@expo-google-fonts/inter`. No CSS-in-JS library — uses React Native `StyleSheet.create`.
 - **Animations**: `react-native-reanimated` for item animations (fade in/out, spring press effects)
 - **Haptics**: `expo-haptics` for tactile feedback on interactions (iOS/Android only)
