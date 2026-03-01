@@ -11,9 +11,10 @@ interface User {
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
+  isLoggingOut: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -48,6 +49,7 @@ function sessionToUser(session: Session | null): User | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!supabaseConfigured) {
@@ -75,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!trimEmail || !password) {
       return { success: false, error: 'Please fill in all fields' };
     }
+    setIsLoggingOut(false);
     const { error } = await supabase.auth.signInWithPassword({ email: trimEmail, password });
     if (error) return { success: false, error: friendlyError(error.message) };
     return { success: true };
@@ -99,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (password.length < 6) {
       return { success: false, error: 'Password must be at least 6 characters' };
     }
+    setIsLoggingOut(false);
     const { error } = await supabase.auth.signUp({
       email: trimEmail,
       password,
@@ -109,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    setIsLoggingOut(true);
     if (supabaseConfigured) {
       await supabase.auth.signOut();
     } else {
@@ -119,10 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     user,
     isLoading,
+    isLoggingOut,
     login,
     register,
     logout,
-  }), [user, isLoading, login, register, logout]);
+  }), [user, isLoading, isLoggingOut, login, register, logout]);
 
   return (
     <AuthContext.Provider value={value}>
