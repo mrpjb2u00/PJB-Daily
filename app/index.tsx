@@ -26,12 +26,6 @@ export default function SplashScreen() {
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
 
-  React.useEffect(() => {
-    if (!isLoading && user) {
-      router.replace('/(tabs)');
-    }
-  }, [user, isLoading]);
-
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
@@ -40,7 +34,9 @@ export default function SplashScreen() {
     );
   }
 
-  if (user) return null;
+  if (user) {
+    return null;
+  }
 
   const handleGetStarted = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -48,7 +44,7 @@ export default function SplashScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+    <View key="welcome" style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <LinearGradient
