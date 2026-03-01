@@ -19,6 +19,21 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const NOT_CONFIGURED_MSG = 'Authentication service is not configured. Please contact the app administrator.';
 
+function friendlyError(message: string): string {
+  const map: Record<string, string> = {
+    'Invalid login credentials': 'Incorrect email or password. Please try again.',
+    'Invalid API key': 'Authentication service is misconfigured. Please contact the app administrator.',
+    'User already registered': 'An account with this email already exists. Try signing in instead.',
+    'Email rate limit exceeded': 'Too many attempts. Please wait a moment and try again.',
+    'Password should be at least 6 characters': 'Password must be at least 6 characters.',
+    'For security purposes, you can only request this after 60 seconds.': 'Please wait 60 seconds before trying again.',
+    'Signup requires a valid password': 'Please enter a valid password (at least 6 characters).',
+    'Email not confirmed': 'Please check your email and confirm your account before signing in.',
+    'New password should be different from the old password.': 'Your new password must be different from your current one.',
+  };
+  return map[message] || 'Something went wrong. Please try again later.';
+}
+
 function sessionToUser(session: Session | null): User | null {
   if (!session?.user) return null;
   const meta = session.user.user_metadata || {};
@@ -59,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Please fill in all fields' };
     }
     const { error } = await supabase.auth.signInWithPassword({ email: trimEmail, password });
-    if (error) return { success: false, error: error.message };
+    if (error) return { success: false, error: friendlyError(error.message) };
     return { success: true };
   }, []);
 
@@ -87,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: { data: { username: trimUser } },
     });
-    if (error) return { success: false, error: error.message };
+    if (error) return { success: false, error: friendlyError(error.message) };
     return { success: true };
   }, []);
 

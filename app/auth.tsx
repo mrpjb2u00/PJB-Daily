@@ -21,6 +21,15 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
+function friendlyResetError(message: string): string {
+  const map: Record<string, string> = {
+    'Invalid API key': 'Authentication service is misconfigured. Please contact the app administrator.',
+    'Email rate limit exceeded': 'Too many attempts. Please wait a moment and try again.',
+    'For security purposes, you can only request this after 60 seconds.': 'Please wait 60 seconds before trying again.',
+  };
+  return map[message] || 'Something went wrong. Please try again later.';
+}
+
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
@@ -78,7 +87,7 @@ export default function AuthScreen() {
     const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmed);
     setResetSubmitting(false);
     if (resetErr) {
-      setResetError(resetErr.message);
+      setResetError(friendlyResetError(resetErr.message));
     } else {
       setResetMessage('Check your email for a password reset link.');
       setTimeout(() => setShowForgotSheet(false), 3000);
