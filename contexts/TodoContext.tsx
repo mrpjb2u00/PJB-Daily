@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | '6months' | 'yearly';
 
@@ -35,10 +34,6 @@ interface TodoContextValue {
 
 const TodoContext = createContext<TodoContextValue | null>(null);
 
-function getStorageKey(username: string) {
-  return `@pjb_todos_${username}`;
-}
-
 function getNextDueDate(recurrence: RecurrenceType, fromDate: number): number {
   const d = new Date(fromDate);
   switch (recurrence) {
@@ -53,91 +48,132 @@ function getNextDueDate(recurrence: RecurrenceType, fromDate: number): number {
   return d.getTime();
 }
 
+function processRecurrence(todos: Todo[]): Todo[] {
+  const now = Date.now();
+  return todos.map((t) => {
+    if (t.completed && t.recurrence !== 'none' && t.lastCompletedAt) {
+      const nextDue = getNextDueDate(t.recurrence, t.lastCompletedAt);
+      if (now >= nextDue) {
+        return { ...t, completed: false, lastCompletedAt: undefined };
+      }
+    }
+    return t;
+  });
+}
+
+function rowToTodo(row: any): Todo {
+  return {
+    id: row.id,
+    title: row.title,
+    completed: row.completed,
+    createdAt: new Date(row.created_at).getTime(),
+    recurrence: row.recurrence || 'none',
+    lastCompletedAt: row.last_completed_at ? new Date(row.last_completed_at).getTime() : undefined,
+  };
+}
+
 export function TodoProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !supabaseConfigured) {
       setTodos([]);
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    AsyncStorage.getItem(getStorageKey(user.username)).then((data) => {
-      if (data) {
-        try {
-          const loaded: Todo[] = JSON.parse(data);
-          const now = Date.now();
-          const processed = loaded.map((t) => {
-            if (t.completed && t.recurrence !== 'none' && t.lastCompletedAt) {
-              const nextDue = getNextDueDate(t.recurrence, t.lastCompletedAt);
-              if (now >= nextDue) {
-                return { ...t, completed: false, lastCompletedAt: undefined };
-              }
-            }
-            return t;
-          });
-          setTodos(processed);
-        } catch {}
-      }
-      setIsLoading(false);
-    });
-  }, [user]);
-
-  const persist = useCallback((updated: Todo[]) => {
-    if (user) {
-      AsyncStorage.setItem(getStorageKey(user.username), JSON.stringify(updated));
-    }
-  }, [user]);
-
-  const addTodo = useCallback((title: string, recurrence: RecurrenceType) => {
-    const newTodo: Todo = {
-      id: Crypto.randomUUID(),
-      title: title.trim(),
-      completed: false,
-      createdAt: Date.now(),
-      recurrence,
-    };
-    setTodos((prev) => {
-      const updated = [newTodo, ...prev];
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
-
-  const updateTodo = useCallback((id: string, title: string, recurrence: RecurrenceType) => {
-    setTodos((prev) => {
-      const updated = prev.map((t) => (t.id === id ? { ...t, title: title.trim(), recurrence } : t));
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
-
-  const deleteTodo = useCallback((id: string) => {
-    setTodos((prev) => {
-      const updated = prev.filter((t) => t.id !== id);
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
-
-  const toggleTodo = useCallback((id: string) => {
-    setTodos((prev) => {
-      const updated = prev.map((t) => {
-        if (t.id !== id) return t;
-        const nowCompleted = !t.completed;
-        return {
-          ...t,
-          completed: nowCompleted,
-          lastCompletedAt: nowCompleted ? Date.now() : undefined,
-        };
+    supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to load todos:', error.message);
+          setTodos([]);
+        } else {
+          const loaded = (data || []).map(rowToTodo);
+          setTodos(processRecurrence(loaded));
+        }
+        setIsLoading(false);
       });
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
+  }, [user]);
+
+  const addTodo = useCallback(async (title: string, recurrence: RecurrenceType) => {
+    if (!user) return;
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('todos')
+      .insert({
+        user_id: user.id,
+        title: title.trim(),
+        completed: false,
+        recurrence,
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error('Failed to add todo:', error.message);
+      return;
+    }
+    setTodos((prev) => [rowToTodo(data), ...prev]);
+  }, [user]);
+
+  const updateTodo = useCallback(async (id: string, title: string, recurrence: RecurrenceType) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('todos')
+      .update({ title: title.trim(), recurrence })
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Failed to update todo:', error.message);
+      return;
+    }
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, title: title.trim(), recurrence } : t)));
+  }, [user]);
+
+  const deleteTodo = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('todos')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Failed to delete todo:', error.message);
+      return;
+    }
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+  }, [user]);
+
+  const toggleTodo = useCallback(async (id: string) => {
+    if (!user) return;
+    const todo = todos.find((t) => t.id === id);
+    if (!todo) return;
+    const nowCompleted = !todo.completed;
+    const lastCompletedAt = nowCompleted ? new Date().toISOString() : null;
+    const { error } = await supabase
+      .from('todos')
+      .update({ completed: nowCompleted, last_completed_at: lastCompletedAt })
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Failed to toggle todo:', error.message);
+      return;
+    }
+    setTodos((prev) => prev.map((t) => {
+      if (t.id !== id) return t;
+      return {
+        ...t,
+        completed: nowCompleted,
+        lastCompletedAt: nowCompleted ? Date.now() : undefined,
+      };
+    }));
+  }, [user, todos]);
 
   const value = useMemo(() => ({
     todos,

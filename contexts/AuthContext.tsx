@@ -3,6 +3,7 @@ import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 
 interface User {
+  id: string;
   username: string;
   email: string;
 }
@@ -38,6 +39,7 @@ function sessionToUser(session: Session | null): User | null {
   if (!session?.user) return null;
   const meta = session.user.user_metadata || {};
   return {
+    id: session.user.id,
     username: meta.username || session.user.email?.split('@')[0] || 'user',
     email: session.user.email || '',
   };

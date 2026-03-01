@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
 export interface Note {
   id: string;
@@ -21,8 +20,14 @@ interface NotesContextValue {
 
 const NotesContext = createContext<NotesContextValue | null>(null);
 
-function getStorageKey(username: string) {
-  return `@pjb_notes_${username}`;
+function rowToNote(row: any): Note {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content || '',
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+  };
 }
 
 export function NotesProvider({ children }: { children: ReactNode }) {
@@ -31,63 +36,81 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !supabaseConfigured) {
       setNotes([]);
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    AsyncStorage.getItem(getStorageKey(user.username)).then((data) => {
-      if (data) {
-        try {
-          setNotes(JSON.parse(data));
-        } catch {}
-      }
-      setIsLoading(false);
-    });
+    supabase
+      .from('notes')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to load notes:', error.message);
+          setNotes([]);
+        } else {
+          setNotes((data || []).map(rowToNote));
+        }
+        setIsLoading(false);
+      });
   }, [user]);
 
-  const persist = useCallback((updated: Note[]) => {
-    if (user) {
-      AsyncStorage.setItem(getStorageKey(user.username), JSON.stringify(updated));
+  const addNote = useCallback(async (title: string, content: string) => {
+    if (!user) return;
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({
+        user_id: user.id,
+        title: title.trim() || 'Untitled',
+        content: content.trim(),
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error('Failed to add note:', error.message);
+      return;
     }
+    setNotes((prev) => [rowToNote(data), ...prev]);
   }, [user]);
 
-  const addNote = useCallback((title: string, content: string) => {
-    const now = Date.now();
-    const newNote: Note = {
-      id: Crypto.randomUUID(),
-      title: title.trim() || 'Untitled',
-      content: content.trim(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setNotes((prev) => {
-      const updated = [newNote, ...prev];
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
+  const updateNote = useCallback(async (id: string, title: string, content: string) => {
+    if (!user) return;
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from('notes')
+      .update({ title: title.trim() || 'Untitled', content: content.trim(), updated_at: now })
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Failed to update note:', error.message);
+      return;
+    }
+    setNotes((prev) => prev.map((n) =>
+      n.id === id
+        ? { ...n, title: title.trim() || 'Untitled', content: content.trim(), updatedAt: Date.now() }
+        : n,
+    ));
+  }, [user]);
 
-  const updateNote = useCallback((id: string, title: string, content: string) => {
-    setNotes((prev) => {
-      const updated = prev.map((n) =>
-        n.id === id
-          ? { ...n, title: title.trim() || 'Untitled', content: content.trim(), updatedAt: Date.now() }
-          : n,
-      );
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
-
-  const deleteNote = useCallback((id: string) => {
-    setNotes((prev) => {
-      const updated = prev.filter((n) => n.id !== id);
-      persist(updated);
-      return updated;
-    });
-  }, [persist]);
+  const deleteNote = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('notes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      console.error('Failed to delete note:', error.message);
+      return;
+    }
+    setNotes((prev) => prev.filter((n) => n.id !== id));
+  }, [user]);
 
   const value = useMemo(() => ({
     notes,
