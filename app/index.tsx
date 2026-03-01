@@ -7,7 +7,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,7 +33,7 @@ export default function SplashScreen() {
   }
 
   if (user) {
-    return null;
+    return <Redirect href="/(tabs)" />;
   }
 
   const handleGetStarted = () => {

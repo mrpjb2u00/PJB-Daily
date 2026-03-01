@@ -49,6 +49,8 @@ Preferred communication style: Simple, everyday language.
 
 4. **Expo Router file-based routing**: Routes are determined by file structure in the `app/` directory. The tab navigator lives in `app/(tabs)/` with `todos.tsx` and `notes.tsx` screens.
 
+5. **Auth navigation strategy**: Uses a split approach — declarative `<Redirect>` components in `index.tsx` and `auth.tsx` for login redirects, and an auth guard in `_layout.tsx` for logout redirects (web: `window.location.href` for full page reload; mobile: `CommonActions.reset` to reset the navigation stack). Tab layout shows a loading spinner when user is null (never returns null, which would cause white screens). No timing flags or imperative navigation in logout handlers — they simply call `await logout()`.
+
 ### Project Scripts
 
 - `npm run expo:dev` — Start Expo dev server (configured for Replit)

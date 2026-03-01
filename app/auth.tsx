@@ -11,7 +11,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,12 +48,6 @@ export default function AuthScreen() {
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  React.useEffect(() => {
-    if (!isLoading && user) {
-      router.replace('/(tabs)');
-    }
-  }, [user, isLoading]);
-
   if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
@@ -62,7 +56,9 @@ export default function AuthScreen() {
     );
   }
 
-  if (user) return null;
+  if (user) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const openForgotPasswordSheet = () => {
     setResetEmail('');

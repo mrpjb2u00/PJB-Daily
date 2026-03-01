@@ -95,8 +95,7 @@ export default function NotesScreen() {
 
   const handleLogout = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.replace('/');
-    setTimeout(() => logout(), 100);
+    await logout();
   };
 
   const renderEmpty = () => {

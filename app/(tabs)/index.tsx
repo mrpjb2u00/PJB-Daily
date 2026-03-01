@@ -78,8 +78,7 @@ export default function TodosScreen() {
 
   const handleLogout = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.replace('/');
-    setTimeout(() => logout(), 100);
+    await logout();
   };
 
   const handleFilterPress = () => {
