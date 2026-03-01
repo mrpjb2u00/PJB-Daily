@@ -1,0 +1,76 @@
+You are my build auditor. I need a complete technical handoff of this project so I can move it from Replit to VS Code, add Supabase correctly, and publish to Google Play + Apple App Store (via Expo/EAS if applicable).
+
+Return your answer as ONE single markdown document with these exact sections and include code blocks where requested:
+
+## 0) One-sentence summary
+- What this app is and what it does.
+
+## 1) Stack identification (be explicit)
+- Is this: Expo React Native, React web (Vite/Next), Node/Express backend, full-stack monorepo, or something else?
+- Framework(s) + versions (React / Expo SDK / Next / Vite / Express, etc.)
+- Language (TS/JS), runtime (Node version), package manager (npm/yarn/pnpm/bun)
+- Hosting/runtime assumptions in Replit
+
+## 2) Project structure map
+- Print a directory tree (max depth 4) starting from repo root.
+- Identify which folder is the “app entry point” and which is backend (if any).
+
+## 3) How to run locally in VS Code (exact commands)
+- Prereqs needed (Node version, Expo CLI, etc.)
+- Commands to install deps, start dev server, run tests/lint (if any)
+- The exact file(s) that define start scripts (paste relevant parts of package.json)
+
+## 4) Environment variables & secrets (complete)
+- List ALL env vars currently used by the app (from .env, Replit secrets, config files, code references).
+- For each env var: name, purpose, where it’s read in code, sample format.
+- Identify which are safe to expose on client vs must remain server-only.
+
+## 5) Data layer & API surface
+- Where data is stored now (local state, JSON, SQLite, external DB, etc.)
+- If there is a backend/API:
+  - List all routes/endpoints and what they do
+  - Auth method used (if any)
+  - Where base URLs are configured
+- If only client-side:
+  - Identify data fetching patterns and storage
+
+## 6) Authentication (current state)
+- Is auth implemented? If yes:
+  - flow description (signup/login/logout/password reset)
+  - where user session is stored
+  - files/modules involved
+
+## 7) Supabase integration plan (tailored to THIS codebase)
+- Based on this project type, specify exactly how to integrate Supabase:
+  - which SDK to install (@supabase/supabase-js etc.)
+  - where to create the supabase client file
+  - how to store env vars for local dev + EAS builds
+  - how to implement auth in this project style
+- Include minimal example code snippets aligned with this repo structure.
+
+## 8) Security checklist
+- If using Supabase: explain RLS needs and what tables would require policies
+- What should never be committed (env files, keys)
+- Any insecure patterns you detect in this repo
+
+## 9) Mobile build & store readiness (ONLY if this is a mobile app)
+- Confirm whether this is Expo-managed or bare React Native.
+- Does the repo already have: app.json/app.config.js, eas.json, expo dependencies?
+- Provide:
+  - recommended bundle identifier + android package name format
+  - required app icons/splash sizes & where to put them
+  - permissions currently requested
+  - how to build production artifacts (exact EAS commands)
+
+## 10) Known issues / blockers
+- Anything that will break when leaving Replit (paths, env vars, native modules, filesystem assumptions).
+- Any missing configs for EAS/builds.
+
+## 11) Exact “handoff checklist”
+- A numbered checklist (small steps) from:
+  Replit ➜ VS Code ➜ Supabase ➜ EAS build ➜ Play Store ➜ App Store.
+
+Important constraints:
+- Be concrete, do not give generic advice.
+- Reference actual filenames and paths from THIS repository.
+- If you’re unsure, inspect the codebase and say what you checked.
