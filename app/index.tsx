@@ -1,19 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
   Platform,
-  Image,
   ActivityIndicator,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,13 +20,6 @@ export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, isLoading } = useAuth();
-  const [mountKey, setMountKey] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      setMountKey((k) => k + 1);
-    }, [])
-  );
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
@@ -51,7 +42,7 @@ export default function SplashScreen() {
   };
 
   return (
-    <View key={`welcome-${mountKey}`} style={[styles.screen, { backgroundColor: theme.background }]}>
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <LinearGradient
@@ -91,7 +82,7 @@ export default function SplashScreen() {
           },
         ]}
       >
-        <Animated.View entering={FadeIn.duration(800)} style={styles.iconWrap}>
+        <View style={styles.iconWrap}>
           <LinearGradient
             colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -100,30 +91,28 @@ export default function SplashScreen() {
           >
             <Ionicons name="checkmark-done" size={48} color="#fff" />
           </LinearGradient>
-        </Animated.View>
+        </View>
 
-        <Animated.Text
-          entering={FadeInUp.delay(200).duration(600)}
+        <Text
           style={[styles.title, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
         >
           To-Dos & Notes
-        </Animated.Text>
-        <Animated.Text
-          entering={FadeInUp.delay(350).duration(600)}
+        </Text>
+        <Text
           style={[styles.subtitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
         >
           by PJBStudios
-        </Animated.Text>
+        </Text>
 
-        <Animated.View entering={FadeInUp.delay(500).duration(600)} style={styles.featureList}>
+        <View style={styles.featureList}>
           <FeatureRow icon="checkbox-outline" text="Organize your tasks" theme={theme} />
           <FeatureRow icon="repeat-outline" text="Set recurring reminders" theme={theme} />
           <FeatureRow icon="document-text-outline" text="Capture quick notes" theme={theme} />
-        </Animated.View>
+        </View>
 
         <View style={{ flex: 1 }} />
 
-        <Animated.View entering={FadeInDown.delay(700).duration(600)} style={styles.bottomSection}>
+        <View style={styles.bottomSection}>
           <Pressable
             onPress={handleGetStarted}
             style={({ pressed }) => [
@@ -150,7 +139,7 @@ export default function SplashScreen() {
           <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
             Your productivity, simplified
           </Text>
-        </Animated.View>
+        </View>
       </View>
     </View>
   );
