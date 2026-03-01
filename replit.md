@@ -17,9 +17,9 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: React Context API is used for all app state:
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
   - `AuthContext` — Supabase-only authentication (signInWithPassword, signUp, signOut) with session persistence. No local fallback — requires Supabase to be configured via `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.
-  - `TodoContext` — CRUD operations for todos with recurrence support, persisted per-user in AsyncStorage
-  - `NotesContext` — CRUD operations for notes, persisted per-user in AsyncStorage
-- **Data Persistence**: Todos, notes, and theme preference are stored locally using `@react-native-async-storage/async-storage`. Authentication is handled exclusively by Supabase (no local auth fallback).
+  - `TodoContext` — CRUD operations for todos with recurrence support, persisted in Supabase `todos` table per user
+  - `NotesContext` — CRUD operations for notes, persisted in Supabase `notes` table per user
+- **Data Persistence**: Todos and notes are stored in Supabase PostgreSQL tables with Row Level Security (RLS) ensuring per-user data isolation. Theme preference is stored locally via AsyncStorage. Authentication is handled exclusively by Supabase (no local auth fallback).
 - **Styling**: Custom color system defined in `constants/colors.ts` with light and dark themes. Uses Inter font family loaded via `@expo-google-fonts/inter`. No CSS-in-JS library — uses React Native `StyleSheet.create`.
 - **Animations**: `react-native-reanimated` for item animations (fade in/out, spring press effects)
 - **Haptics**: `expo-haptics` for tactile feedback on interactions (iOS/Android only)
@@ -32,20 +32,20 @@ Preferred communication style: Simple, everyday language.
 - **Storage Layer**: `server/storage.ts` defines an `IStorage` interface with a `MemStorage` in-memory implementation for users. This is a placeholder — not actively used by the frontend.
 - **Build**: Server is bundled with esbuild for production (`server:build` script)
 
-### Database Schema (Drizzle ORM — Not Actively Used)
+### Supabase Database
 
-- **ORM**: Drizzle ORM with PostgreSQL dialect configured via `drizzle.config.ts`
-- **Schema**: Defined in `shared/schema.ts` — currently only has a `users` table with `id`, `username`, and `password` fields
-- **Validation**: Uses `drizzle-zod` to generate Zod schemas from the Drizzle table definitions
-- **Status**: The schema exists but the app currently uses AsyncStorage for all data. The database infrastructure is ready to be connected when needed. Run `npm run db:push` to push schema to a provisioned PostgreSQL database.
+- **Todos table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `completed` (boolean), `recurrence` (text), `last_completed_at` (timestamptz), `created_at` (timestamptz)
+- **Notes table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `content` (text), `created_at` (timestamptz), `updated_at` (timestamptz)
+- **Row Level Security (RLS)**: Enabled on both tables. Each user can only SELECT, INSERT, UPDATE, DELETE their own rows (via `auth.uid() = user_id` policies).
+- **Drizzle ORM**: Also configured via `drizzle.config.ts` with a `users` table in `shared/schema.ts`, but not actively used by the app (Supabase client is used directly).
 
 ### Key Architecture Decisions
 
-1. **Local-first data storage**: All data lives in AsyncStorage on the device. This was chosen for simplicity and offline-first capability, but means no cross-device sync. The server and database schema are scaffolded for future migration to server-side storage.
+1. **Supabase-backed data storage**: Todos and notes are stored in Supabase PostgreSQL tables, enabling cross-device sync when users log in from different devices. Theme preference remains in AsyncStorage for instant local access.
 
-2. **Context-based state over server queries**: Despite having `@tanstack/react-query` and an API client (`lib/query-client.ts`) set up, the app doesn't use them for data fetching. All state flows through React Contexts that read/write AsyncStorage directly.
+2. **Context-based state with Supabase**: React Contexts manage all app state. TodoContext and NotesContext perform CRUD operations directly against Supabase tables using the Supabase JS client. State is loaded on login and updated optimistically after successful Supabase operations.
 
-3. **Per-user data isolation**: Todos and notes are stored with user-specific AsyncStorage keys (e.g., `@pjb_todos_username`), providing simple multi-user support without a backend.
+3. **Per-user data isolation via RLS**: Supabase Row Level Security policies ensure each user can only access their own todos and notes. The `user_id` column links data to `auth.users(id)`.
 
 4. **Expo Router file-based routing**: Routes are determined by file structure in the `app/` directory. The tab navigator lives in `app/(tabs)/` with `todos.tsx` and `notes.tsx` screens.
 
@@ -60,8 +60,8 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-- **PostgreSQL** (via Drizzle ORM) — Schema defined but not actively queried by the app. Requires `DATABASE_URL` environment variable when using `db:push`.
-- **AsyncStorage** — Primary data store for all user data, todos, notes, and preferences
+- **Supabase** — Primary data store for todos, notes, and user authentication. Requires `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.
+- **AsyncStorage** — Used for theme preference persistence only
 - **Expo Services** — Font loading, haptics, crypto (UUID generation), image picker, linear gradient, blur effects
 - **TanStack React Query** — Installed and configured but not actively used for data fetching yet
 - **Express** — Backend server for API endpoints and static file serving
