@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
@@ -17,7 +17,6 @@ SplashScreen.preventAutoHideAsync();
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
-  const navigationRef = useRef(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -25,11 +24,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inTabs = segments[0] === "(tabs)";
     const inAuth = segments[0] === "auth";
 
-    if (user && !inTabs) {
-      navigationRef.current = true;
+    const inProtected = inTabs || segments[0] === "add-task" || segments[0] === "edit-note";
+
+    if (user && !inTabs && !inAuth) {
       router.replace("/(tabs)");
-    } else if (!user && inTabs) {
-      navigationRef.current = true;
+    } else if (!user && inProtected) {
       router.replace("/");
     }
   }, [user, isLoading, segments]);

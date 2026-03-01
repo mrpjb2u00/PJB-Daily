@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +22,13 @@ export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, isLoading } = useAuth();
+  const [mountKey, setMountKey] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setMountKey((k) => k + 1);
+    }, [])
+  );
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
@@ -44,7 +51,7 @@ export default function SplashScreen() {
   };
 
   return (
-    <View key="welcome" style={[styles.screen, { backgroundColor: theme.background }]}>
+    <View key={`welcome-${mountKey}`} style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <LinearGradient
