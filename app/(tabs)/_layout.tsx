@@ -3,10 +3,11 @@ import { Tabs } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, StyleSheet, View, ActivityIndicator } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import React from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import WelcomeContent from "@/components/WelcomeContent";
 
 function NativeTabLayout() {
   return (
@@ -87,14 +88,13 @@ function ClassicTabLayout() {
 
 export default function TabLayout() {
   const { user, isLoading } = useAuth();
-  const { theme } = useTheme();
 
-  if (isLoading || !user) {
-    return (
-      <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
+  if (isLoading) {
+    return null;
+  }
+
+  if (!user) {
+    return <WelcomeContent />;
   }
 
   if (isLiquidGlassAvailable()) {
