@@ -79,6 +79,10 @@ export default function TodosScreen() {
   const handleLogout = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await logout();
+    if (Platform.OS !== 'web') {
+      const { reloadAppAsync } = await import('expo');
+      await reloadAppAsync();
+    }
   };
 
   const handleFilterPress = () => {

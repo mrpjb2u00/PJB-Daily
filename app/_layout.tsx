@@ -26,12 +26,8 @@ function useProtectedRoute() {
 
     const inTabs = segments[0] === "(tabs)";
 
-    if (!user && inTabs) {
-      if (Platform.OS === 'web') {
-        (window as any).location.href = '/';
-      } else {
-        router.replace('/');
-      }
+    if (!user && inTabs && Platform.OS === 'web') {
+      (window as any).location.href = '/';
     }
   }, [user, isLoading, segments, navigationState?.key]);
 }
