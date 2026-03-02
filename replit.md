@@ -51,6 +51,8 @@ Preferred communication style: Simple, everyday language.
 
 5. **Auth navigation strategy**: Uses a split approach — declarative `<Redirect>` components in `index.tsx` and `auth.tsx` for login redirects, and an auth guard in `_layout.tsx` for logout redirects (web: `window.location.href` for full page reload; mobile: `reloadAppAsync` from expo to restart the JS bundle). Tab layout shows a loading spinner when user is null (never returns null, which would cause white screens). No timing flags or imperative navigation in logout handlers — they simply call `await logout()`. Note: expo-router's `router.replace('/')` does NOT work on native when navigating from a tab navigator to a root screen — this is a known limitation.
 
+6. **Mobile logout via component swap**: On mobile, navigation from tabs to root doesn't work reliably (`router.replace`, `CommonActions.reset`, and `reloadAppAsync` all fail in Expo Go). Instead, the `(tabs)/_layout.tsx` renders the `WelcomeContent` component directly when `!user`, bypassing navigation entirely. The shared `WelcomeContent` component (`components/WelcomeContent.tsx`) is used by both `app/index.tsx` and the tab layout. On web, the auth guard in `_layout.tsx` uses `window.location.href = '/'` for a clean page reload.
+
 ### Project Scripts
 
 - `npm run expo:dev` — Start Expo dev server (configured for Replit)
