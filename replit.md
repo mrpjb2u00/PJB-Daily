@@ -13,7 +13,7 @@ Preferred communication style: Simple, everyday language.
 ### Frontend (Expo / React Native)
 
 - **Framework**: Expo SDK 54 with React Native 0.81, using expo-router for file-based routing
-- **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing two main screens: Todos and Notes. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
+- **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing three main screens: Todos, Notes, and Profile. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
 - **State Management**: React Context API is used for all app state:
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
   - `AuthContext` — Supabase-only authentication (signInWithPassword, signUp, signOut) with session persistence. No local fallback — requires Supabase to be configured via `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.

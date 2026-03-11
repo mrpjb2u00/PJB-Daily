@@ -20,6 +20,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "note.text", selected: "note.text" }} md="note" />
         <Label>Notes</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Icon sf={{ default: "person", selected: "person.fill" }} md="account-circle" />
+        <Label>Profile</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -28,6 +32,7 @@ function ClassicTabLayout() {
   const { theme, isDark } = useTheme();
   const isWeb = Platform.OS === "web";
   const isIOS = Platform.OS === "ios";
+  const isAndroid = Platform.OS === "android";
 
   return (
     <Tabs
@@ -42,6 +47,7 @@ function ClassicTabLayout() {
           borderTopColor: theme.border,
           elevation: 0,
           ...(isWeb ? { height: 84 } : {}),
+          ...(isAndroid ? { paddingBottom: 10, height: 64 } : {}),
         },
         tabBarBackground: () =>
           isIOS ? (
@@ -79,6 +85,15 @@ function ClassicTabLayout() {
           title: "Notes",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
