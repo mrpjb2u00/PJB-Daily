@@ -1,0 +1,56 @@
+I have a live Expo/React Native app already working in Replit and already published to Google Play internal testing. It uses Supabase for auth and may already have some live user data, so I do NOT want a rebuild from scratch unless absolutely necessary.
+
+I want you to act as a senior product engineer and create a SAFE implementation plan only — do not start coding yet.
+
+Goal:
+Turn the current To-Do & Notes app into a more polished productivity/planner app without breaking existing users or live data.
+
+Very important constraints:
+1. Do NOT recommend destructive changes to existing user data.
+2. Prefer additive schema/database changes only.
+3. Preserve current auth flow and existing live app compatibility.
+4. If any data is currently stored locally instead of Supabase, identify that clearly and explain migration risks.
+5. Keep the same app identity/package structure for future updates to the live app.
+6. I want phased implementation, from safest/highest-value updates first to more advanced features later.
+7. Before coding, I want a clear plan, affected files/components, database impact, migration impact, and risk level.
+
+Features I want considered:
+1. Save email on login/sign-in screen so users do not have to retype it after logging out.
+2. Allow To-Do sorting by oldest first or newest first.
+3. Add a true Home screen instead of landing directly on the To-Do screen.
+4. Make the Home screen a monthly calendar view.
+5. Show color-coded dots on calendar dates that have scheduled To-Dos and/or Notes.
+6. When a user taps a date:
+   - if there are only To-Dos, show those To-Dos
+   - if there are only Notes, show those Notes
+   - if there are both, show a pop-up/modal letting the user choose which to open
+7. Add due dates and optional times/timeframes for To-Dos.
+8. Add categories/color coding for To-Dos.
+9. Consider whether simple lists/categories are better than full folder functionality for this phase.
+10. Add a simple Profile screen if appropriate.
+11. Improve Notes slightly, but keep this scoped for now.
+12. Note sharing/collaboration is a future feature, not necessarily for this immediate release.
+
+What I want from you right now:
+A. First, audit the current app architecture and tell me:
+- what is stored in Supabase
+- what is stored locally
+- which current flows are most fragile
+- which changes are safest to do first
+
+B. Then propose a phased plan like:
+- Phase 1 = quick wins / low risk
+- Phase 2 = planner/calendar upgrade
+- Phase 3 = optional polish
+- Future Phase = collaboration/sharing
+
+C. For each phase include:
+- what user value it adds
+- files/screens/components likely affected
+- Supabase/database changes needed
+- whether a migration is required
+- risk level: low / medium / high
+
+D. Tell me clearly whether this should be upgraded in-place or rebuilt from scratch, and explain why.
+
+Again: planning only, no coding yet.

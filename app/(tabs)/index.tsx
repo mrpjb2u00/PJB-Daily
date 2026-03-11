@@ -22,6 +22,7 @@ import { useTodos, Todo, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/To
 import TodoItem from '@/components/TodoItem';
 
 type FilterOption = 'all' | RecurrenceType;
+type SortOrder = 'newest' | 'oldest';
 
 const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
   { value: 'all', label: 'All Tasks' },
@@ -40,6 +41,7 @@ export default function TodosScreen() {
   const { user, logout } = useAuth();
   const { todos, toggleTodo, deleteTodo, isLoading } = useTodos();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterBtnLayout, setFilterBtnLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const filterBtnRef = useRef<View>(null);
@@ -62,7 +64,16 @@ export default function TodosScreen() {
     };
   }, [filteredTodos]);
 
-  const sortedTodos = useMemo(() => [...activeTodos, ...completedTodos], [activeTodos, completedTodos]);
+  const sortedTodos = useMemo(() => {
+    const sorted = (arr: Todo[]) =>
+      sortOrder === 'oldest' ? [...arr].reverse() : arr;
+    return [...sorted(activeTodos), ...sorted(completedTodos)];
+  }, [activeTodos, completedTodos, sortOrder]);
+
+  const handleSortToggle = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setSortOrder((prev) => (prev === 'newest' ? 'oldest' : 'newest'));
+  };
 
   const activeFilterLabel = FILTER_OPTIONS.find((f) => f.value === activeFilter)?.label || 'All Tasks';
 
@@ -159,6 +170,20 @@ export default function TodosScreen() {
             </Text>
           </Pressable>
         )}
+        <Pressable
+          onPress={handleSortToggle}
+          style={[styles.sortBtn, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}
+          testID="sort-toggle"
+        >
+          <Ionicons
+            name={sortOrder === 'newest' ? 'arrow-down' : 'arrow-up'}
+            size={14}
+            color={theme.accent}
+          />
+          <Text style={[styles.filterBtnText, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
+            {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
+          </Text>
+        </Pressable>
       </View>
 
       {activeTodos.length > 0 && (
@@ -483,6 +508,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+  },
+  sortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginLeft: 'auto',
   },
   clearFilterText: {
     fontSize: 12,

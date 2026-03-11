@@ -10,13 +10,15 @@ import { useNotes } from '@/contexts/NotesContext';
 
 export default function EditNoteScreen() {
   const { theme, isDark } = useTheme();
-  const { addNote, updateNote } = useNotes();
+  const { notes, addNote, updateNote } = useNotes();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id?: string; title?: string; content?: string }>();
+  const params = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!params.id;
 
-  const [title, setTitle] = useState(params.title || '');
-  const [content, setContent] = useState(params.content || '');
+  const existingNote = isEditing ? notes.find((n) => n.id === params.id) : undefined;
+
+  const [title, setTitle] = useState(existingNote?.title || '');
+  const [content, setContent] = useState(existingNote?.content || '');
   const titleRef = useRef<TextInput>(null);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;

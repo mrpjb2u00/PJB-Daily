@@ -90,7 +90,7 @@ export default function NotesScreen() {
 
   const handleEdit = (note: Note) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({ pathname: '/edit-note', params: { id: note.id, title: note.title, content: note.content } });
+    router.push({ pathname: '/edit-note', params: { id: note.id } });
   };
 
   const handleLogout = () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
+
+const SAVED_EMAIL_KEY = '@pjb_last_email';
 
 function friendlyResetError(message: string): string {
   const map: Record<string, string> = {
@@ -47,6 +50,12 @@ export default function AuthScreen() {
   const [resetSubmitting, setResetSubmitting] = useState(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
+
+  useEffect(() => {
+    AsyncStorage.getItem(SAVED_EMAIL_KEY).then((saved) => {
+      if (saved) setEmail(saved);
+    });
+  }, []);
 
   if (isLoading) {
     return (
@@ -102,6 +111,7 @@ export default function AuthScreen() {
     setSubmitting(false);
     if (result.success) {
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await AsyncStorage.setItem(SAVED_EMAIL_KEY, email.trim().toLowerCase());
       router.replace('/(tabs)');
     } else {
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
