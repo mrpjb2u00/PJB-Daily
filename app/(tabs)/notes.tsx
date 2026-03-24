@@ -187,7 +187,11 @@ export default function NotesScreen() {
         style={[
           styles.fabContainer,
           {
-            bottom: (Platform.OS === 'web' ? 34 : insets.bottom) + 70,
+            bottom: Platform.OS === 'web'
+              ? 92
+              : Platform.OS === 'android'
+              ? 72
+              : insets.bottom + 57,
           },
         ]}
       >
@@ -293,7 +297,9 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute' as const,
-    right: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   fab: {
     borderRadius: 30,
