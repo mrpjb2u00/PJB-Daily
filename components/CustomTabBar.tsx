@@ -8,11 +8,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const TAB_BAR_HEIGHT = 60;
 
 export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { theme, isDark } = useTheme();
+  const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const isIOS = Platform.OS === 'ios';
 
@@ -25,6 +27,11 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     } else {
       router.push('/add-task');
     }
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    logout();
   };
 
   const renderTab = (routeIndex: number) => {
@@ -89,10 +96,10 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         },
       ]}
     >
-      {isIOS ? (
+      {isIOS && !isDark ? (
         <BlurView
           intensity={100}
-          tint={isDark ? 'dark' : 'light'}
+          tint="light"
           style={StyleSheet.absoluteFill}
         />
       ) : (
@@ -107,6 +114,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
       <View style={styles.row}>
         <View style={styles.side}>
           {renderTab(0)}
+          {renderTab(1)}
         </View>
 
         <Pressable
@@ -133,8 +141,22 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         </Pressable>
 
         <View style={styles.side}>
-          {renderTab(1)}
           {renderTab(2)}
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [
+              styles.tabItem,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Logout"
+            testID="tab-logout-button"
+          >
+            <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
+            <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+              Logout
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -169,7 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   addWrap: {
-    marginHorizontal: 12,
+    marginHorizontal: 8,
   },
   addButton: {
     width: 52,

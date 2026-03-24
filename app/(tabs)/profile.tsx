@@ -18,14 +18,9 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
-
-  const handleLogout = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
-  };
 
   const handleThemeToggle = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -58,7 +53,7 @@ export default function ProfileScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: (Platform.OS === 'web' ? 34 : insets.bottom) + 100 },
+          { paddingBottom: 24 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -149,23 +144,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <Pressable
-          onPress={handleLogout}
-          style={({ pressed }) => [
-            styles.logoutBtn,
-            {
-              backgroundColor: theme.destructive + '12',
-              borderColor: theme.destructive + '30',
-              opacity: pressed ? 0.75 : 1,
-            },
-          ]}
-          testID="profile-logout-button"
-        >
-          <Ionicons name="log-out-outline" size={18} color={theme.destructive} />
-          <Text style={[styles.logoutText, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
-            Sign Out
-          </Text>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -273,18 +251,5 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginLeft: 64,
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 15,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginTop: 4,
-  },
-  logoutText: {
-    fontSize: 15,
   },
 });
