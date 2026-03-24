@@ -8,7 +8,6 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -82,11 +81,6 @@ export default function NotesScreen() {
   const { notes, deleteNote, isLoading } = useNotes();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
-
-  const handleAdd = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/edit-note');
-  };
 
   const handleEdit = (note: Note) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -174,47 +168,11 @@ export default function NotesScreen() {
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={[
           styles.listContent,
-          {
-            paddingBottom: (Platform.OS === 'web' ? 34 : insets.bottom) + 100,
-          },
+          { paddingBottom: 24 },
         ]}
         showsVerticalScrollIndicator={false}
         scrollEnabled={notes.length > 0}
       />
-
-      <Animated.View
-        entering={FadeInDown.duration(500).delay(300)}
-        style={[
-          styles.fabContainer,
-          {
-            bottom: Platform.OS === 'web'
-              ? 92
-              : Platform.OS === 'android'
-              ? 72
-              : insets.bottom + 57,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={handleAdd}
-          style={({ pressed }) => [
-            styles.fab,
-            {
-              opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.92 : 1 }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={[theme.accentSecondary, theme.gradientEnd] as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fabGradient}
-          >
-            <Ionicons name="add" size={28} color="#fff" />
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
     </View>
   );
 }
@@ -294,26 +252,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 40,
-  },
-  fabContainer: {
-    position: 'absolute' as const,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  fab: {
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

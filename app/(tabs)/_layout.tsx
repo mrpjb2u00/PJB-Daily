@@ -1,13 +1,10 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
-import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform } from "react-native";
 import React from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { CustomTabBar } from "@/components/CustomTabBar";
 import WelcomeContent from "@/components/WelcomeContent";
 
 function NativeTabLayout() {
@@ -30,76 +27,14 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const { theme, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
-  const isWeb = Platform.OS === "web";
-  const isIOS = Platform.OS === "ios";
-  const isAndroid = Platform.OS === "android";
-
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.accent,
-        tabBarInactiveTintColor: theme.textTertiary,
-        tabBarStyle: {
-          position: "absolute" as const,
-          backgroundColor: isIOS ? "transparent" : isDark ? "#0F0F0F" : "#FFFFFF",
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: theme.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
-          ...(isAndroid ? { paddingBottom: 10, height: 64 } : {}),
-          ...(isIOS ? { paddingBottom: insets.bottom, height: 49 + insets.bottom } : {}),
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: isDark ? "#0F0F0F" : "#FFFFFF" },
-              ]}
-            />
-          ) : null,
-        tabBarLabelStyle: {
-          fontFamily: "Inter_500Medium",
-          fontSize: 11,
-        },
-      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "To-Dos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkbox-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="notes"
-        options={{
-          title: "Notes",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'To-Dos' }} />
+      <Tabs.Screen name="notes" options={{ title: 'Notes' }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>
   );
 }

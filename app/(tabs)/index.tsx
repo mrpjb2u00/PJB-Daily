@@ -77,11 +77,6 @@ export default function TodosScreen() {
 
   const activeFilterLabel = FILTER_OPTIONS.find((f) => f.value === activeFilter)?.label || 'All Tasks';
 
-  const handleAdd = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/add-task');
-  };
-
   const handleEdit = (item: Todo) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({ pathname: '/add-task', params: { id: item.id, title: item.title, recurrence: item.recurrence } });
@@ -299,47 +294,11 @@ export default function TodosScreen() {
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={[
           styles.listContent,
-          {
-            paddingBottom: (Platform.OS === 'web' ? 34 : insets.bottom) + 100,
-          },
+          { paddingBottom: 24 },
         ]}
         showsVerticalScrollIndicator={false}
         scrollEnabled={sortedTodos.length > 0}
       />
-
-      <Animated.View
-        entering={FadeInDown.duration(500).delay(300)}
-        style={[
-          styles.fabContainer,
-          {
-            bottom: Platform.OS === 'web'
-              ? 92
-              : Platform.OS === 'android'
-              ? 72
-              : insets.bottom + 57,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={handleAdd}
-          style={({ pressed }) => [
-            styles.fab,
-            {
-              opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.92 : 1 }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fabGradient}
-          >
-            <Ionicons name="add" size={28} color="#fff" />
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
 
       <Modal
         visible={showFilterMenu}
@@ -546,27 +505,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 40,
-  },
-  fabContainer: {
-    position: 'absolute' as const,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  fab: {
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   modalOverlay: {
     flex: 1,
