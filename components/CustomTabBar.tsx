@@ -111,17 +111,34 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         />
       )}
 
-      <View style={styles.row}>
-        <View style={styles.side}>
+      {activeRouteName === 'profile' ? (
+        <View style={styles.rowFlat}>
           {renderTab(0)}
           {renderTab(1)}
+          {renderTab(2)}
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [
+              styles.tabItem,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Logout"
+            testID="tab-logout-button"
+          >
+            <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
+            <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+              Logout
+            </Text>
+          </Pressable>
         </View>
-
-        {activeRouteName === 'profile' ? (
-          <View style={styles.addWrap} pointerEvents="none">
-            <View style={styles.addButtonSpacer} />
+      ) : (
+        <View style={styles.row}>
+          <View style={styles.side}>
+            {renderTab(0)}
+            {renderTab(1)}
           </View>
-        ) : (
+
           <Pressable
             onPress={handleAddPress}
             style={({ pressed }) => [
@@ -144,27 +161,27 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
               <Ionicons name="add" size={28} color="#fff" />
             </LinearGradient>
           </Pressable>
-        )}
 
-        <View style={styles.side}>
-          {renderTab(2)}
-          <Pressable
-            onPress={handleLogout}
-            style={({ pressed }) => [
-              styles.tabItem,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Logout"
-            testID="tab-logout-button"
-          >
-            <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
-            <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
-              Logout
-            </Text>
-          </Pressable>
+          <View style={styles.side}>
+            {renderTab(2)}
+            <Pressable
+              onPress={handleLogout}
+              style={({ pressed }) => [
+                styles.tabItem,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Logout"
+              testID="tab-logout-button"
+            >
+              <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
+              <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+                Logout
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 }
@@ -178,6 +195,12 @@ const styles = StyleSheet.create({
     height: TAB_BAR_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  rowFlat: {
+    height: TAB_BAR_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
   },
   side: {
     flex: 1,
@@ -210,9 +233,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
-  },
-  addButtonSpacer: {
-    width: 52,
-    height: 52,
   },
 });
