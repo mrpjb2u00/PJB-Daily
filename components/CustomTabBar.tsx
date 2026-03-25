@@ -117,28 +117,34 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
           {renderTab(1)}
         </View>
 
-        <Pressable
-          onPress={handleAddPress}
-          style={({ pressed }) => [
-            styles.addWrap,
-            {
-              opacity: pressed ? 0.85 : 1,
-              transform: [{ scale: pressed ? 0.92 : 1 }],
-            },
-          ]}
-          accessibilityLabel="Add"
-          accessibilityRole="button"
-          testID="tab-add-button"
-        >
-          <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.addButton}
+        {activeRouteName === 'profile' ? (
+          <View style={styles.addWrap} pointerEvents="none">
+            <View style={styles.addButtonSpacer} />
+          </View>
+        ) : (
+          <Pressable
+            onPress={handleAddPress}
+            style={({ pressed }) => [
+              styles.addWrap,
+              {
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.92 : 1 }],
+              },
+            ]}
+            accessibilityLabel="Add"
+            accessibilityRole="button"
+            testID="tab-add-button"
           >
-            <Ionicons name="add" size={28} color="#fff" />
-          </LinearGradient>
-        </Pressable>
+            <LinearGradient
+              colors={[theme.gradientStart, theme.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.addButton}
+            >
+              <Ionicons name="add" size={28} color="#fff" />
+            </LinearGradient>
+          </Pressable>
+        )}
 
         <View style={styles.side}>
           {renderTab(2)}
@@ -204,5 +210,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
+  },
+  addButtonSpacer: {
+    width: 52,
+    height: 52,
   },
 });

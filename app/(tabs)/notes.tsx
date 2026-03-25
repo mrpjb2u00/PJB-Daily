@@ -77,7 +77,7 @@ function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void
 export default function NotesScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { notes, deleteNote, isLoading } = useNotes();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
@@ -85,11 +85,6 @@ export default function NotesScreen() {
   const handleEdit = (note: Note) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({ pathname: '/edit-note', params: { id: note.id } });
-  };
-
-  const handleLogout = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
   };
 
   const renderEmpty = () => {
@@ -149,12 +144,6 @@ export default function NotesScreen() {
               size={18}
               color={isDark ? theme.gradientEnd : theme.gradientStart}
             />
-          </Pressable>
-          <Pressable
-            onPress={handleLogout}
-            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
-          >
-            <Ionicons name="log-out-outline" size={18} color={theme.textSecondary} />
           </Pressable>
         </View>
       </View>

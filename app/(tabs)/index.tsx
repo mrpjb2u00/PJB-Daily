@@ -38,7 +38,7 @@ const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
 export default function TodosScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { todos, toggleTodo, deleteTodo, isLoading } = useTodos();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
@@ -80,11 +80,6 @@ export default function TodosScreen() {
   const handleEdit = (item: Todo) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({ pathname: '/add-task', params: { id: item.id, title: item.title, recurrence: item.recurrence } });
-  };
-
-  const handleLogout = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
   };
 
   const handleFilterPress = () => {
@@ -254,15 +249,6 @@ export default function TodosScreen() {
               size={18}
               color={isDark ? theme.gradientEnd : theme.gradientStart}
             />
-          </Pressable>
-          <Pressable
-            onPress={handleLogout}
-            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
-            testID="logout-button"
-            accessibilityLabel="Logout"
-            accessibilityRole="button"
-          >
-            <Ionicons name="log-out-outline" size={18} color={theme.textSecondary} />
           </Pressable>
         </View>
       </View>
