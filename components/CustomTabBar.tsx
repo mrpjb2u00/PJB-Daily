@@ -34,7 +34,8 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     } else if (activeRouteName === 'calendar') {
       router.push({ pathname: '/add-task', params: { defaultDate: selectedDate } });
     } else {
-      router.push('/add-task');
+      const today = new Date().toISOString().split('T')[0];
+      router.push({ pathname: '/add-task', params: { defaultDate: today } });
     }
   };
 

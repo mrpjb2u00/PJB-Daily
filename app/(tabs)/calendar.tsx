@@ -185,23 +185,27 @@ export default function CalendarScreen() {
                   <Pressable
                     key={dateStr}
                     onPress={() => handleDayPress(day)}
-                    style={[
-                      styles.dayCell,
-                      isSelected && { backgroundColor: theme.accent, borderRadius: 10 },
-                      !isSelected && isToday && { borderRadius: 10, borderWidth: 1.5, borderColor: theme.accent },
-                    ]}
+                    style={styles.dayCell}
                   >
-                    <Text
+                    <View
                       style={[
-                        styles.dayText,
-                        { fontFamily: isSelected || isToday ? 'Inter_700Bold' : 'Inter_400Regular' },
-                        { color: isSelected ? '#fff' : isToday ? theme.accent : theme.text },
+                        styles.dayInner,
+                        isSelected && { backgroundColor: theme.accent },
+                        !isSelected && isToday && { borderWidth: 2, borderColor: theme.accent },
                       ]}
                     >
-                      {day}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.dayText,
+                          { fontFamily: isSelected || isToday ? 'Inter_700Bold' : 'Inter_400Regular' },
+                          { color: isSelected ? '#fff' : isToday ? theme.accent : theme.text },
+                        ]}
+                      >
+                        {day}
+                      </Text>
+                    </View>
                     {hasTasks && (
-                      <View style={[styles.dot, { backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : theme.accent }]} />
+                      <View style={[styles.dot, { backgroundColor: isSelected ? 'rgba(255,255,255,0.9)' : theme.accent }]} />
                     )}
                   </Pressable>
                 );
@@ -311,15 +315,22 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+  },
+  dayInner: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dayText: {
     fontSize: 14,
   },
   dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    marginTop: 3,
   },
   tasksSection: {
     gap: 10,

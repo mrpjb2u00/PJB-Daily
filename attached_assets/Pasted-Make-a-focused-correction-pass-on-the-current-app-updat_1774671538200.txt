@@ -1,0 +1,58 @@
+Make a focused correction pass on the current app update. Do not redesign the app. Keep the current styling, structure, and features, but fix the following issues carefully.
+
+ISSUES TO FIX:
+
+1. CALENDAR DAY HIGHLIGHT / DOT VISIBILITY
+
+* Improve the selected day styling on the Calendar screen so it looks more polished and centered.
+* The selected date badge/highlight should feel visually balanced inside the calendar cell.
+* Make sure the date number is centered properly inside the highlighted shape.
+* Improve spacing between the selected date highlight and the task indicator dot.
+* Make the dot indicator for days with tasks easier to see.
+* Keep it elegant and on-brand with the app’s existing orange accent style.
+* Do not make the dots too large or ugly, just clearer and more visible.
+
+2. TASKS CREATED FROM THE TO-DOS SCREEN NEED A DEFAULT DATE
+
+* Right now, tasks created from the Calendar screen correctly use the selected calendar date.
+* Fix the To-Dos flow so that when a user creates a new task from the To-Dos screen, the task also gets a sensible default date.
+* Default behavior:
+
+  * if created from Calendar screen: use selected calendar date
+  * if created from To-Dos screen: use today’s date by default
+* This should allow the task to appear on the correct date in the Calendar automatically.
+* Keep this compatible with existing recurring task functionality.
+
+3. LOGIN SHOULD LAND ON CALENDAR, NOT TO-DOS
+
+* After sign-in, the user should land on the Calendar tab/home screen, not the To-Dos screen.
+* Calendar must be the true default home tab after authentication.
+* Check the actual navigation flow after login, not just the tab order.
+* Make sure any redirects, router push/replace logic, or initial route settings all point to Calendar as the default destination.
+
+4. DOUBLE-CHECK CONSISTENCY
+
+* Confirm that tasks with a date show correctly on the calendar.
+* Confirm that new tasks created from either Calendar or To-Dos appear on the expected date.
+* Confirm that the bottom nav still remains:
+
+  * Calendar
+  * To-Dos
+  * centered Add button
+  * Notes
+  * Profile
+* Confirm Logout remains only in Profile.
+
+IMPORTANT:
+
+* Do not remove existing features.
+* Do not redesign the entire calendar.
+* Do not change the orange gradient branding.
+* Keep the UI polished and mobile-friendly.
+* Make only the corrections needed to resolve the issues above.
+
+When done, summarize exactly what was changed in:
+
+1. calendar styling
+2. task date defaults
+3. login/default route behavior

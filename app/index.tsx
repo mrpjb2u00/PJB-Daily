@@ -21,7 +21,7 @@ export default function SplashScreen() {
   }
 
   if (user) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/calendar" />;
   }
 
   return <WelcomeContent />;

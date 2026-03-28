@@ -66,7 +66,7 @@ export default function AuthScreen() {
   }
 
   if (user) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/calendar" />;
   }
 
   const openForgotPasswordSheet = () => {
@@ -112,7 +112,7 @@ export default function AuthScreen() {
     if (result.success) {
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await AsyncStorage.setItem(SAVED_EMAIL_KEY, email.trim().toLowerCase());
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/calendar');
     } else {
       if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setError(result.error || 'Something went wrong');
