@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
@@ -21,15 +21,17 @@ export interface Todo {
   createdAt: number;
   recurrence: RecurrenceType;
   lastCompletedAt?: number;
+  dueDate?: string;
 }
 
 interface TodoContextValue {
   todos: Todo[];
-  addTodo: (title: string, recurrence: RecurrenceType) => void;
-  updateTodo: (id: string, title: string, recurrence: RecurrenceType) => void;
+  addTodo: (title: string, recurrence: RecurrenceType, dueDate?: string) => void;
+  updateTodo: (id: string, title: string, recurrence: RecurrenceType, dueDate?: string) => void;
   deleteTodo: (id: string) => void;
   toggleTodo: (id: string) => void;
   isLoading: boolean;
+  dueDateSupported: boolean;
 }
 
 const TodoContext = createContext<TodoContextValue | null>(null);
@@ -69,6 +71,7 @@ function rowToTodo(row: any): Todo {
     createdAt: new Date(row.created_at).getTime(),
     recurrence: row.recurrence || 'none',
     lastCompletedAt: row.last_completed_at ? new Date(row.last_completed_at).getTime() : undefined,
+    dueDate: row.due_date ?? undefined,
   };
 }
 
@@ -76,6 +79,21 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const dueDateRef = useRef<boolean>(false);
+  const [dueDateSupported, setDueDateSupported] = useState(false);
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    supabase
+      .from('todos')
+      .select('due_date')
+      .limit(1)
+      .then(({ error }) => {
+        const supported = !error || error.code !== '42703';
+        dueDateRef.current = supported;
+        setDueDateSupported(supported);
+      });
+  }, []);
 
   useEffect(() => {
     if (!user || !supabaseConfigured) {
@@ -101,18 +119,21 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       });
   }, [user]);
 
-  const addTodo = useCallback(async (title: string, recurrence: RecurrenceType) => {
+  const addTodo = useCallback(async (title: string, recurrence: RecurrenceType, dueDate?: string) => {
     if (!user) return;
     const now = new Date().toISOString();
+    const insertData: Record<string, any> = {
+      user_id: user.id,
+      title: title.trim(),
+      completed: false,
+      recurrence,
+      created_at: now,
+    };
+    if (dueDate && dueDateRef.current) insertData.due_date = dueDate;
+
     const { data, error } = await supabase
       .from('todos')
-      .insert({
-        user_id: user.id,
-        title: title.trim(),
-        completed: false,
-        recurrence,
-        created_at: now,
-      })
+      .insert(insertData)
       .select()
       .single();
     if (error) {
@@ -122,18 +143,21 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     setTodos((prev) => [rowToTodo(data), ...prev]);
   }, [user]);
 
-  const updateTodo = useCallback(async (id: string, title: string, recurrence: RecurrenceType) => {
+  const updateTodo = useCallback(async (id: string, title: string, recurrence: RecurrenceType, dueDate?: string) => {
     if (!user) return;
+    const updates: Record<string, any> = { title: title.trim(), recurrence };
+    if (dueDate !== undefined && dueDateRef.current) updates.due_date = dueDate || null;
+
     const { error } = await supabase
       .from('todos')
-      .update({ title: title.trim(), recurrence })
+      .update(updates)
       .eq('id', id)
       .eq('user_id', user.id);
     if (error) {
       console.error('Failed to update todo:', error.message);
       return;
     }
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, title: title.trim(), recurrence } : t)));
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, title: title.trim(), recurrence, dueDate: dueDate || undefined } : t)));
   }, [user]);
 
   const deleteTodo = useCallback(async (id: string) => {
@@ -182,7 +206,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     deleteTodo,
     toggleTodo,
     isLoading,
-  }), [todos, addTodo, updateTodo, deleteTodo, toggleTodo, isLoading]);
+    dueDateSupported,
+  }), [todos, addTodo, updateTodo, deleteTodo, toggleTodo, isLoading, dueDateSupported]);
 
   return (
     <TodoContext.Provider value={value}>

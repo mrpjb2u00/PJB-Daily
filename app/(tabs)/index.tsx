@@ -79,7 +79,7 @@ export default function TodosScreen() {
 
   const handleEdit = (item: Todo) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({ pathname: '/add-task', params: { id: item.id, title: item.title, recurrence: item.recurrence } });
+    router.push({ pathname: '/add-task', params: { id: item.id, title: item.title, recurrence: item.recurrence, defaultDate: item.dueDate || '' } });
   };
 
   const handleFilterPress = () => {

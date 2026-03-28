@@ -10,6 +10,10 @@ import WelcomeContent from "@/components/WelcomeContent";
 function NativeTabLayout() {
   return (
     <NativeTabs>
+      <NativeTabs.Trigger name="calendar">
+        <Icon sf={{ default: "calendar", selected: "calendar.fill" }} md="calendar-today" />
+        <Label>Calendar</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "checklist", selected: "checklist" }} md="check-box" />
         <Label>To-Dos</Label>
@@ -29,9 +33,11 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   return (
     <Tabs
+      initialRouteName="calendar"
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
+      <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
       <Tabs.Screen name="index" options={{ title: 'To-Dos' }} />
       <Tabs.Screen name="notes" options={{ title: 'Notes' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />

@@ -13,12 +13,13 @@ Preferred communication style: Simple, everyday language.
 ### Frontend (Expo / React Native)
 
 - **Framework**: Expo SDK 54 with React Native 0.81, using expo-router for file-based routing
-- **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing three main screens: Todos, Notes, and Profile. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
+- **Navigation**: File-based routing via `expo-router` with a tab layout (`(tabs)/`) containing four main screens: Calendar (default/home), To-Dos, Notes, and Profile. Modal screens for adding/editing tasks and notes are presented as form sheets or modals.
 - **State Management**: React Context API is used for all app state:
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
   - `AuthContext` — Supabase-only authentication (signInWithPassword, signUp, signOut) with session persistence. No local fallback — requires Supabase to be configured via `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.
-  - `TodoContext` — CRUD operations for todos with recurrence support, persisted in Supabase `todos` table per user
+  - `TodoContext` — CRUD operations for todos with recurrence support and optional `dueDate` (YYYY-MM-DD), persisted in Supabase `todos` table per user. Probes for `due_date` column at startup and gracefully skips it if missing.
   - `NotesContext` — CRUD operations for notes, persisted in Supabase `notes` table per user
+  - `CalendarContext` — lightweight shared state for the calendar's selected date (string YYYY-MM-DD). Used by CalendarScreen and CustomTabBar (so + button passes the selected date to add-task).
 - **Data Persistence**: Todos and notes are stored in Supabase PostgreSQL tables with Row Level Security (RLS) ensuring per-user data isolation. Theme preference is stored locally via AsyncStorage. Authentication is handled exclusively by Supabase (no local auth fallback).
 - **Styling**: Custom color system defined in `constants/colors.ts` with light and dark themes. Uses Inter font family loaded via `@expo-google-fonts/inter`. No CSS-in-JS library — uses React Native `StyleSheet.create`.
 - **Animations**: `react-native-reanimated` for item animations (fade in/out, spring press effects)
@@ -34,7 +35,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Supabase Database
 
-- **Todos table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `completed` (boolean), `recurrence` (text), `last_completed_at` (timestamptz), `created_at` (timestamptz)
+- **Todos table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `completed` (boolean), `recurrence` (text), `last_completed_at` (timestamptz), `created_at` (timestamptz), `due_date` (date, nullable — **requires manual migration**: `ALTER TABLE todos ADD COLUMN IF NOT EXISTS due_date date;`)
 - **Notes table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `content` (text), `created_at` (timestamptz), `updated_at` (timestamptz)
 - **Row Level Security (RLS)**: Enabled on both tables. Each user can only SELECT, INSERT, UPDATE, DELETE their own rows (via `auth.uid() = user_id` policies).
 - **Drizzle ORM**: Also configured via `drizzle.config.ts` with a `users` table in `shared/schema.ts`, but not actively used by the app (Supabase client is used directly).

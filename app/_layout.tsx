@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TodoProvider } from "@/contexts/TodoContext";
 import { NotesProvider } from "@/contexts/NotesContext";
+import { CalendarProvider } from "@/contexts/CalendarContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -82,11 +83,13 @@ export default function RootLayout() {
           <KeyboardProvider>
             <ThemeProvider>
               <AuthProvider>
-                <TodoProvider>
-                  <NotesProvider>
-                    <RootLayoutNav />
-                  </NotesProvider>
-                </TodoProvider>
+                <CalendarProvider>
+                  <TodoProvider>
+                    <NotesProvider>
+                      <RootLayoutNav />
+                    </NotesProvider>
+                  </TodoProvider>
+                </CalendarProvider>
               </AuthProvider>
             </ThemeProvider>
           </KeyboardProvider>

@@ -18,13 +18,18 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
   const handleThemeToggle = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
     toggleTheme();
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    logout();
   };
 
   return (
@@ -51,13 +56,10 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: 24 },
-        ]}
+        contentContainerStyle={[styles.content, { paddingBottom: 32 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.avatarRow]}>
+        <View style={styles.avatarRow}>
           <LinearGradient
             colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -85,10 +87,7 @@ export default function ProfileScreen() {
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Pressable
             onPress={handleThemeToggle}
-            style={({ pressed }) => [
-              styles.row,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
+            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
           >
             <View style={[styles.rowIcon, { backgroundColor: theme.surfaceSecondary }]}>
               <Ionicons
@@ -144,6 +143,31 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        <Text style={[styles.sectionLabel, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
+          Session
+        </Text>
+
+        <Pressable
+          onPress={handleLogout}
+          style={({ pressed }) => [
+            styles.logoutBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.destructive + '50',
+              opacity: pressed ? 0.75 : 1,
+            },
+          ]}
+          testID="profile-logout-button"
+          accessibilityRole="button"
+          accessibilityLabel="Sign Out"
+        >
+          <View style={[styles.rowIcon, { backgroundColor: theme.destructive + '15' }]}>
+            <Ionicons name="log-out-outline" size={18} color={theme.destructive} />
+          </View>
+          <Text style={[styles.logoutText, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
+            Sign Out
+          </Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -251,5 +275,18 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginLeft: 64,
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  logoutText: {
+    fontSize: 15,
   },
 });

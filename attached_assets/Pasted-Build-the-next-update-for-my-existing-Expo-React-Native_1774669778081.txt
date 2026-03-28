@@ -1,0 +1,120 @@
+Build the next update for my existing Expo React Native app, “To-Dos & Notes by PJBStudios,” by extending the current app without breaking existing functionality.
+
+IMPORTANT:
+
+* Build on top of the current codebase.
+* Keep the current visual style, theme system, spacing, rounded cards, and orange gradient branding that already exists.
+* Do not remove any existing working features unless I explicitly asked for it below.
+* Keep the app polished, mobile-friendly, and production-ready.
+
+GOALS FOR THIS UPDATE:
+
+1. Make Calendar the new Home/default tab
+2. Update the bottom navigation to stay balanced
+3. Move Logout off the bottom nav and place it inside the Profile screen only
+4. Add a new Calendar/Home screen that works as a planner dashboard
+5. Prepare task data so tasks can be tied to dates
+6. Keep the centered Add button
+
+BOTTOM NAVIGATION:
+Change the bottom navigation to this exact structure:
+
+* Calendar
+* To-Dos
+* Centered Add button
+* Notes
+* Profile
+
+Remove Logout from the bottom nav completely.
+Logout should live inside the Profile screen only as a clear button/action item.
+
+HOME / CALENDAR SCREEN:
+Create a new Calendar screen and make it the default landing tab when the app opens after login.
+
+This Calendar screen should:
+
+* match the current app styling
+* feel clean and modern
+* act like a planner dashboard
+* be simple in version 1, not overly complicated
+
+The Calendar screen should include:
+
+1. Header area
+
+* Greeting at the top, similar to the current style
+* Main title such as “My Calendar” or “Planner”
+* Keep the styling consistent with the current To-Dos screen
+
+2. Month calendar view
+
+* Show the current month and year at the top
+* Show a simple month grid
+* Allow the user to tap a date
+* Highlight the selected date clearly
+* Dates with tasks assigned should show a small dot indicator under the date number
+* Keep this visually clean and easy to tap on mobile
+
+3. Selected date task section
+   Below the calendar:
+
+* Show the selected date in a readable format
+* Show all tasks assigned to that selected date
+* If there are no tasks for that date, show a clean empty state such as “No tasks for this day”
+
+4. Add behavior
+
+* Keep the existing centered Add button in the bottom nav
+* When the user is on the Calendar screen and taps Add, new tasks should default to the currently selected calendar date
+
+TASK DATA UPDATE:
+Update the task model/data structure so tasks can support a date field.
+Requirements:
+
+* add a date field to todos/tasks
+* do this safely so old tasks do not break
+* if a task has no date yet, handle it gracefully
+* keep all current task functionality working, including recurring tasks if they already exist
+
+CALENDAR FUNCTIONALITY:
+For this first version:
+
+* Use the current month by default
+* Select today by default when the screen opens
+* Tapping another day updates the selected day section below
+* Dot indicators should appear for dates that have at least one task assigned
+* Keep month navigation simple if implemented, but do not overcomplicate the UI
+
+PROFILE SCREEN UPDATE:
+Update the Profile screen to include:
+
+* Logout button/action
+* Keep the current profile layout/style if possible
+* Make Logout easy to find, but not oversized or ugly
+
+DO NOT DO THESE YET:
+
+* Do not add Google Calendar sync
+* Do not add notifications yet
+* Do not add drag-and-drop scheduling
+* Do not redesign the entire app
+* Do not remove existing To-Dos or Notes screens
+* Do not over-engineer the calendar with too many controls
+
+TECHNICAL EXPECTATIONS:
+
+* Keep the Expo React Native project structure clean
+* Reuse existing navigation, contexts, and styling patterns where possible
+* Keep state management consistent with the current app
+* Make sure the new Calendar tab is the default/home tab
+* Preserve existing auth behavior
+* Preserve dark mode/theme support if already present
+* Code should be clean and maintainable
+
+DELIVERABLE:
+Implement the update directly in the app and show me:
+
+1. the new bottom nav structure
+2. the new Calendar/Home screen
+3. how task dates are stored/handled
+4. the updated Profile screen with Logout moved there

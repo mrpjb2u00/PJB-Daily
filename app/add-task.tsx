@@ -9,15 +9,23 @@ import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoCont
 
 const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'monthly', 'quarterly', '6months', 'yearly'];
 
+function formatDateLabel(dateStr: string): string {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
 export default function AddTaskSheet() {
   const { theme, isDark } = useTheme();
   const { addTodo, updateTodo } = useTodos();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id?: string; title?: string; recurrence?: string }>();
+  const params = useLocalSearchParams<{ id?: string; title?: string; recurrence?: string; defaultDate?: string }>();
   const isEditing = !!params.id;
 
   const [text, setText] = useState(params.title || '');
   const [recurrence, setRecurrence] = useState<RecurrenceType>((params.recurrence as RecurrenceType) || 'none');
+  const [dueDate, setDueDate] = useState<string>(params.defaultDate || '');
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -30,11 +38,16 @@ export default function AddTaskSheet() {
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     if (isEditing && params.id) {
-      updateTodo(params.id, text, recurrence);
+      updateTodo(params.id, text, recurrence, dueDate || undefined);
     } else {
-      addTodo(text, recurrence);
+      addTodo(text, recurrence, dueDate || undefined);
     }
     router.back();
+  };
+
+  const handleClearDate = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDueDate('');
   };
 
   return (
@@ -70,6 +83,20 @@ export default function AddTaskSheet() {
           maxLength={200}
         />
       </View>
+
+      {dueDate ? (
+        <View style={styles.dateRow}>
+          <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
+            <Ionicons name="calendar" size={14} color={theme.accent} />
+            <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
+              {formatDateLabel(dueDate)}
+            </Text>
+            <Pressable onPress={handleClearDate} hitSlop={8}>
+              <Ionicons name="close-circle" size={16} color={theme.accent} />
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
 
       <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
         Repeat
@@ -159,7 +186,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   inputWrapper: {
-    marginBottom: 18,
+    marginBottom: 14,
   },
   input: {
     fontSize: 16,
@@ -169,6 +196,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: 52,
     maxHeight: 120,
+  },
+  dateRow: {
+    marginBottom: 14,
+  },
+  datePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  dateText: {
+    fontSize: 13,
   },
   label: {
     fontSize: 13,

@@ -8,13 +8,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 export const TAB_BAR_HEIGHT = 60;
 
+const TAB_CONFIG: Record<string, { label: string; icon: string; iconFocused: string }> = {
+  calendar: { label: 'Calendar', icon: 'calendar-outline', iconFocused: 'calendar' },
+  index:    { label: 'To-Dos',   icon: 'checkbox-outline',  iconFocused: 'checkbox' },
+  notes:    { label: 'Notes',    icon: 'document-text-outline', iconFocused: 'document-text' },
+  profile:  { label: 'Profile',  icon: 'person-outline',    iconFocused: 'person' },
+};
+
 export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { theme, isDark } = useTheme();
-  const { logout } = useAuth();
+  const { selectedDate } = useCalendarContext();
   const insets = useSafeAreaInsets();
   const isIOS = Platform.OS === 'ios';
 
@@ -24,14 +31,11 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (activeRouteName === 'notes') {
       router.push('/edit-note');
+    } else if (activeRouteName === 'calendar') {
+      router.push({ pathname: '/add-task', params: { defaultDate: selectedDate } });
     } else {
       router.push('/add-task');
     }
-  };
-
-  const handleLogout = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    logout();
   };
 
   const renderTab = (routeIndex: number) => {
@@ -40,20 +44,8 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
     const isFocused = state.index === routeIndex;
     const color = isFocused ? theme.accent : theme.textTertiary;
-
-    let iconName: React.ComponentProps<typeof Ionicons>['name'];
-    let label: string;
-
-    if (route.name === 'notes') {
-      iconName = isFocused ? 'document-text' : 'document-text-outline';
-      label = 'Notes';
-    } else if (route.name === 'profile') {
-      iconName = isFocused ? 'person' : 'person-outline';
-      label = 'Profile';
-    } else {
-      iconName = isFocused ? 'checkbox' : 'checkbox-outline';
-      label = 'To-Dos';
-    }
+    const cfg = TAB_CONFIG[route.name] ?? { label: route.name, icon: 'ellipse-outline', iconFocused: 'ellipse' };
+    const iconName = (isFocused ? cfg.iconFocused : cfg.icon) as React.ComponentProps<typeof Ionicons>['name'];
 
     const onPress = () => {
       if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -73,18 +65,19 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         onPress={onPress}
         style={styles.tabItem}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={cfg.label}
         accessibilityState={isFocused ? { selected: true } : {}}
       >
         <Ionicons name={iconName} size={22} color={color} />
         <Text style={[styles.tabLabel, { color, fontFamily: 'Inter_500Medium' }]}>
-          {label}
+          {cfg.label}
         </Text>
       </Pressable>
     );
   };
 
   const bottomPad = Platform.OS === 'web' ? 8 : insets.bottom;
+  const showAdd = activeRouteName !== 'profile';
 
   return (
     <View
@@ -97,42 +90,12 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
       ]}
     >
       {isIOS && !isDark ? (
-        <BlurView
-          intensity={100}
-          tint="light"
-          style={StyleSheet.absoluteFill}
-        />
+        <BlurView intensity={100} tint="light" style={StyleSheet.absoluteFill} />
       ) : (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: isDark ? '#0F0F0F' : '#FFFFFF' },
-          ]}
-        />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#0F0F0F' : '#FFFFFF' }]} />
       )}
 
-      {activeRouteName === 'profile' ? (
-        <View style={styles.rowFlat}>
-          {renderTab(0)}
-          {renderTab(1)}
-          {renderTab(2)}
-          <Pressable
-            onPress={handleLogout}
-            style={({ pressed }) => [
-              styles.tabItem,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Logout"
-            testID="tab-logout-button"
-          >
-            <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
-            <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
-              Logout
-            </Text>
-          </Pressable>
-        </View>
-      ) : (
+      {showAdd ? (
         <View style={styles.row}>
           <View style={styles.side}>
             {renderTab(0)}
@@ -143,10 +106,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             onPress={handleAddPress}
             style={({ pressed }) => [
               styles.addWrap,
-              {
-                opacity: pressed ? 0.85 : 1,
-                transform: [{ scale: pressed ? 0.92 : 1 }],
-              },
+              { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] },
             ]}
             accessibilityLabel="Add"
             accessibilityRole="button"
@@ -164,22 +124,15 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
           <View style={styles.side}>
             {renderTab(2)}
-            <Pressable
-              onPress={handleLogout}
-              style={({ pressed }) => [
-                styles.tabItem,
-                { opacity: pressed ? 0.7 : 1 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Logout"
-              testID="tab-logout-button"
-            >
-              <Ionicons name="log-out-outline" size={22} color={theme.destructive} />
-              <Text style={[styles.tabLabel, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
-                Logout
-              </Text>
-            </Pressable>
+            {renderTab(3)}
           </View>
+        </View>
+      ) : (
+        <View style={styles.rowFlat}>
+          {renderTab(0)}
+          {renderTab(1)}
+          {renderTab(2)}
+          {renderTab(3)}
         </View>
       )}
     </View>
@@ -213,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
+    height: TAB_BAR_HEIGHT,
     gap: 3,
   },
   tabLabel: {
