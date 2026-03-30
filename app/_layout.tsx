@@ -51,6 +51,8 @@ function RootLayoutNav() {
           presentation: "formSheet",
           sheetAllowedDetents: [0.55],
           sheetGrabberVisible: true,
+          headerShown: true,
+          title: "New Task",
         }}
       />
       <Stack.Screen
