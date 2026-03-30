@@ -59,16 +59,22 @@ export default function AddTaskSheet() {
     setDueDate('');
   };
 
-  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 16);
-  const keyboardOffset = Platform.select({ ios: 0, android: insets.top, default: 0 }) ?? 0;
+  // On iOS the formSheet shifts up natively when the keyboard opens — KAV
+  // would create phantom bottom space. On Android we need KAV explicitly.
+  const isIOS = Platform.OS === 'ios';
+  const keyboardOffset = isIOS ? 0 : insets.top;
+  // Inside an iOS formSheet the sheet is floating — no home-indicator inset needed.
+  // On Android/web the scroll content must clear the nav bar / home indicator.
+  const bottomPad = isIOS ? 16 : Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 16);
 
   return (
     <KeyboardAvoidingView
       style={[styles.wrapper, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
       behavior="padding"
       keyboardVerticalOffset={keyboardOffset}
+      enabled={!isIOS}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, isIOS && styles.headerIOS]}>
         <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
           {isEditing ? 'Edit Task' : 'New Task'}
         </Text>
@@ -200,6 +206,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     paddingHorizontal: 20,
+  },
+  headerIOS: {
+    paddingTop: 24,
   },
   headerTitle: {
     fontSize: 18,
