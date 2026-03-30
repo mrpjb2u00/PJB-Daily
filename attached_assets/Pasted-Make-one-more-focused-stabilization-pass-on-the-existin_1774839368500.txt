@@ -1,0 +1,78 @@
+Make one more focused stabilization pass on the existing app. Do not redesign the calendar yet. Do not change the bottom nav. Do not change the current login flow. This pass is only for recurrence edge cases and cross-platform add-task UI consistency.
+
+IMPORTANT:
+
+* Build on top of the current working codebase
+* Keep all current functionality working
+* Do not redesign the main calendar screen yet
+* Do not remove any recurrence options that already exist
+* Do not break iPhone or Android behavior
+
+GOALS OF THIS PASS:
+
+1. Improve recurrence behavior for months that do not contain the original day-of-month
+2. Make the Add Task sheet/modal look and behave consistently on iPhone and Android
+
+PART 1 — RECURRENCE END-OF-MONTH FALLBACK
+
+CURRENT ISSUE:
+Monthly-style recurrences work, but if a task starts on the 31st and a future month has no 31st, the task disappears for that month. The same issue can affect February and shorter months.
+
+FIX THIS FOR THESE RECURRENCE TYPES:
+
+* monthly
+* every 3 months / quarterly
+* every 6 months
+* yearly
+
+EXPECTED BEHAVIOR:
+If the original recurrence day does not exist in the target month, use the last valid day of that month instead.
+
+Examples:
+
+* March 31 monthly → April 30, May 31, June 30, etc.
+* January 31 monthly → February 28 or 29 in leap years
+* Feb 29 yearly → Feb 28 in non-leap years
+* A quarterly task created on August 31 should fall back correctly in months that do not have the 31st
+
+IMPORTANT:
+
+* Keep recurrence stable and predictable
+* Do not duplicate occurrences
+* Do not shift dates incorrectly due to timezone issues
+* Preserve the original recurrence cadence
+
+PART 2 — ADD TASK SHEET / MODAL CROSS-PLATFORM CONSISTENCY
+
+CURRENT ISSUE:
+The Add Task UI looks different between iPhone and Android. The layout, spacing, and overall presentation are not visually consistent.
+
+FIX THESE ISSUES:
+
+* Make the Add Task sheet/modal spacing feel consistent across iOS and Android
+* Respect safe areas properly on both platforms
+* Ensure the title, input, date pill, repeat chips, and submit button align cleanly
+* Ensure repeat options wrap or scroll gracefully if needed
+* Prevent awkward clipping, cramped spacing, or platform-specific layout drift
+* Make keyboard behavior smooth on both platforms
+* Keep the design consistent with the existing app style
+
+DESIGN GOAL:
+The Add Task experience should feel like the same polished product on both iPhone and Android.
+
+DO NOT DO THESE YET:
+
+* do not redesign the calendar into the larger planner version yet
+* do not add notes onto the calendar yet
+* do not remove the current task list below the calendar yet
+* do not add color-coded task blocks inside calendar cells yet
+* do not add the date detail screen yet
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how the end-of-month recurrence fallback now works
+2. which recurrence types were updated
+3. which files were updated
+4. what was changed to improve iPhone and Android Add Task consistency
+5. what I should manually test next
