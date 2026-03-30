@@ -48,10 +48,8 @@ function RootLayoutNav() {
       <Stack.Screen
         name="add-task"
         options={{
-          presentation: "formSheet",
-          sheetAllowedDetents: [0.55],
-          sheetGrabberVisible: true,
-          headerShown: Platform.OS === 'ios',
+          presentation: "modal",
+          headerShown: true,
         }}
       />
       <Stack.Screen

@@ -25,7 +25,7 @@ function formatDateLabel(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-export default function AddTaskSheet() {
+export default function AddTaskScreen() {
   const { theme, isDark } = useTheme();
   const { addTodo, updateTodo } = useTodos();
   const insets = useSafeAreaInsets();
@@ -45,7 +45,6 @@ export default function AddTaskSheet() {
   const handleSave = () => {
     if (!text.trim()) return;
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
     if (isEditing && params.id) {
       updateTodo(params.id, text, recurrence, dueDate || undefined);
     } else {
@@ -59,10 +58,8 @@ export default function AddTaskSheet() {
     setDueDate('');
   };
 
-  const isIOS = Platform.OS === 'ios';
-  const keyboardOffset = isIOS ? 0 : insets.top;
-  const bottomPad = isIOS ? 16 : Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 16);
   const bg = isDark ? '#1A1A1A' : '#FFFFFF';
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20);
 
   return (
     <>
@@ -73,23 +70,22 @@ export default function AddTaskSheet() {
           headerTitleStyle: { color: theme.text, fontFamily: 'Inter_600SemiBold', fontSize: 18 },
           headerShadowVisible: false,
           headerTintColor: theme.text,
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()} hitSlop={12} style={styles.cancelBtn}>
+              <Text style={[styles.cancelText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+                Cancel
+              </Text>
+            </Pressable>
+          ),
         }}
       />
       <KeyboardAvoidingView
         style={[styles.wrapper, { backgroundColor: bg }]}
-        behavior="padding"
-        keyboardVerticalOffset={keyboardOffset}
-        enabled={!isIOS}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
-        {!isIOS && (
-          <View style={styles.header}>
-            <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
-              {isEditing ? 'Edit Task' : 'New Task'}
-            </Text>
-          </View>
-        )}
         <ScrollView
-          style={[styles.scroll, { backgroundColor: bg }]}
+          style={styles.scroll}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -210,14 +206,11 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
   },
-  header: {
-    alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
+  cancelBtn: {
+    paddingHorizontal: 4,
   },
-  headerTitle: {
-    fontSize: 18,
+  cancelText: {
+    fontSize: 16,
   },
   scroll: {
     flex: 1,
