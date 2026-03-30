@@ -52,7 +52,6 @@ function RootLayoutNav() {
           sheetAllowedDetents: [0.55],
           sheetGrabberVisible: true,
           headerShown: Platform.OS === 'ios',
-          title: "New Task",
         }}
       />
       <Stack.Screen
