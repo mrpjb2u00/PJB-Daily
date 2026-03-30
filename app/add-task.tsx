@@ -81,7 +81,7 @@ export default function AddTaskScreen() {
       />
       <KeyboardAvoidingView
         style={[styles.wrapper, { backgroundColor: bg }]}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         <ScrollView
