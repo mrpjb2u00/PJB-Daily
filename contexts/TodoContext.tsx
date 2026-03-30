@@ -2,12 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
-export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | '6months' | 'yearly';
+export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | '6months' | 'yearly';
 
 export const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
   none: 'None',
   daily: 'Daily',
   weekly: 'Weekly',
+  biweekly: 'Every 2 Weeks',
   monthly: 'Monthly',
   quarterly: 'Quarterly',
   '6months': 'Every 6 Months',
@@ -41,6 +42,7 @@ function getNextDueDate(recurrence: RecurrenceType, fromDate: number): number {
   switch (recurrence) {
     case 'daily': d.setDate(d.getDate() + 1); break;
     case 'weekly': d.setDate(d.getDate() + 7); break;
+    case 'biweekly': d.setDate(d.getDate() + 14); break;
     case 'monthly': d.setMonth(d.getMonth() + 1); break;
     case 'quarterly': d.setMonth(d.getMonth() + 3); break;
     case '6months': d.setMonth(d.getMonth() + 6); break;

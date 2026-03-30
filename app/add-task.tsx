@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
 
-const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'monthly', 'quarterly', '6months', 'yearly'];
+const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'biweekly', 'monthly', 'quarterly', '6months', 'yearly'];
 
 function formatDateLabel(dateStr: string): string {
   if (!dateStr) return '';

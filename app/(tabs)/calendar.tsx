@@ -19,6 +19,7 @@ import { useTodos } from '@/contexts/TodoContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import TodoItem from '@/components/TodoItem';
 import { router } from 'expo-router';
+import { getDatesWithTasksInMonth, getTasksForDate } from '@/utils/recurrence';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
@@ -63,17 +64,15 @@ export default function CalendarScreen() {
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  const datesWithTasks = useMemo(() => {
-    const set = new Set<string>();
-    todos.forEach((t) => {
-      if (t.dueDate) set.add(t.dueDate);
-    });
-    return set;
-  }, [todos]);
+  const datesWithTasks = useMemo(
+    () => getDatesWithTasksInMonth(todos, viewYear, viewMonth),
+    [todos, viewYear, viewMonth],
+  );
 
-  const tasksForSelected = useMemo(() => {
-    return todos.filter((t) => t.dueDate === selectedDate);
-  }, [todos, selectedDate]);
+  const tasksForSelected = useMemo(
+    () => getTasksForDate(todos, selectedDate),
+    [todos, selectedDate],
+  );
 
   const calendarDays = useMemo(() => {
     const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
