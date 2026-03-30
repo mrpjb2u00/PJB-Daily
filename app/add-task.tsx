@@ -70,6 +70,8 @@ export default function AddTaskScreen() {
           headerTitleStyle: { color: theme.text, fontFamily: 'Inter_600SemiBold', fontSize: 18 },
           headerShadowVisible: false,
           headerTintColor: theme.text,
+          headerTitleAlign: 'center',
+          headerStatusBarHeight: insets.top,
           headerLeft: () => (
             <Pressable onPress={() => router.back()} hitSlop={12} style={styles.cancelBtn}>
               <Text style={[styles.cancelText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
