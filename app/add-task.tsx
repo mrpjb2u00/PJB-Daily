@@ -94,87 +94,85 @@ export default function AddTaskSheet() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.formBody}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                ref={inputRef}
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.inputBg,
-                    color: theme.text,
-                    fontFamily: 'Inter_400Regular',
-                    borderColor: theme.border,
-                  },
-                ]}
-                placeholder="What do you need to do?"
-                placeholderTextColor={theme.textTertiary}
-                value={text}
-                onChangeText={setText}
-                returnKeyType="done"
-                multiline
-                maxLength={200}
-              />
-            </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              ref={inputRef}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  color: theme.text,
+                  fontFamily: 'Inter_400Regular',
+                  borderColor: theme.border,
+                },
+              ]}
+              placeholder="What do you need to do?"
+              placeholderTextColor={theme.textTertiary}
+              value={text}
+              onChangeText={setText}
+              returnKeyType="done"
+              multiline
+              maxLength={200}
+            />
+          </View>
 
-            {dueDate ? (
-              <View style={styles.dateRow}>
-                <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
-                  <Ionicons name="calendar" size={14} color={theme.accent} />
-                  <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
-                    {formatDateLabel(dueDate)}
-                  </Text>
-                  <Pressable onPress={handleClearDate} hitSlop={8}>
-                    <Ionicons name="close-circle" size={16} color={theme.accent} />
-                  </Pressable>
-                </View>
+          {dueDate ? (
+            <View style={styles.dateRow}>
+              <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
+                <Ionicons name="calendar" size={14} color={theme.accent} />
+                <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
+                  {formatDateLabel(dueDate)}
+                </Text>
+                <Pressable onPress={handleClearDate} hitSlop={8}>
+                  <Ionicons name="close-circle" size={16} color={theme.accent} />
+                </Pressable>
               </View>
-            ) : null}
+            </View>
+          ) : null}
 
-            <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-              Repeat
-            </Text>
+          <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
+            Repeat
+          </Text>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recurrenceRow}
-              style={styles.recurrenceScroll}
-              keyboardShouldPersistTaps="handled"
-            >
-              {RECURRENCE_OPTIONS.map((opt) => {
-                const isActive = recurrence === opt;
-                return (
-                  <Pressable
-                    key={opt}
-                    onPress={() => {
-                      if (Platform.OS !== 'web') Haptics.selectionAsync();
-                      setRecurrence(opt);
-                    }}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.recurrenceRow}
+            style={styles.recurrenceScroll}
+            keyboardShouldPersistTaps="handled"
+          >
+            {RECURRENCE_OPTIONS.map((opt) => {
+              const isActive = recurrence === opt;
+              return (
+                <Pressable
+                  key={opt}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync();
+                    setRecurrence(opt);
+                  }}
+                  style={[
+                    styles.recurrenceChip,
+                    {
+                      backgroundColor: isActive ? theme.accent : theme.inputBg,
+                      borderColor: isActive ? theme.accent : theme.border,
+                    },
+                  ]}
+                >
+                  <Text
                     style={[
-                      styles.recurrenceChip,
+                      styles.recurrenceText,
                       {
-                        backgroundColor: isActive ? theme.accent : theme.inputBg,
-                        borderColor: isActive ? theme.accent : theme.border,
+                        color: isActive ? '#fff' : theme.textSecondary,
+                        fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.recurrenceText,
-                        {
-                          color: isActive ? '#fff' : theme.textSecondary,
-                          fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
-                        },
-                      ]}
-                    >
-                      {RECURRENCE_LABELS[opt]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
+                    {RECURRENCE_LABELS[opt]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
           <Pressable
             onPress={handleSave}
@@ -227,9 +225,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-  },
-  formBody: {
-    flex: 1,
   },
   inputWrapper: {
     marginBottom: 14,
