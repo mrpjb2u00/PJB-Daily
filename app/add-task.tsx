@@ -60,12 +60,13 @@ export default function AddTaskSheet() {
   };
 
   const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 16);
+  const keyboardOffset = Platform.select({ ios: 0, android: insets.top, default: 0 }) ?? 0;
 
   return (
     <KeyboardAvoidingView
       style={[styles.wrapper, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
       behavior="padding"
-      keyboardVerticalOffset={0}
+      keyboardVerticalOffset={keyboardOffset}
     >
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
