@@ -17,6 +17,14 @@ function monthsBetween(start: Date, target: Date): number {
     + (target.getMonth() - start.getMonth());
 }
 
+function lastDayOfMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function canonicalDay(startDay: number, targetYear: number, targetMonth: number): number {
+  return Math.min(startDay, lastDayOfMonth(targetYear, targetMonth));
+}
+
 export function taskOccursOnDate(todo: Todo, dateStr: string): boolean {
   if (!todo.dueDate) return false;
 
@@ -24,6 +32,8 @@ export function taskOccursOnDate(todo: Todo, dateStr: string): boolean {
   const target = parseDateStr(dateStr);
 
   if (isNaN(start.getTime()) || isNaN(target.getTime())) return false;
+
+  const startDay = start.getDate();
 
   switch (todo.recurrence as RecurrenceType) {
     case 'none':
@@ -44,27 +54,29 @@ export function taskOccursOnDate(todo: Todo, dateStr: string): boolean {
 
     case 'monthly': {
       if (target < start) return false;
-      if (target.getDate() !== start.getDate()) return false;
-      return true;
+      const expected = canonicalDay(startDay, target.getFullYear(), target.getMonth());
+      return target.getDate() === expected;
     }
 
     case 'quarterly': {
       if (target < start) return false;
-      if (target.getDate() !== start.getDate()) return false;
+      const expected = canonicalDay(startDay, target.getFullYear(), target.getMonth());
+      if (target.getDate() !== expected) return false;
       return monthsBetween(start, target) % 3 === 0;
     }
 
     case '6months': {
       if (target < start) return false;
-      if (target.getDate() !== start.getDate()) return false;
+      const expected = canonicalDay(startDay, target.getFullYear(), target.getMonth());
+      if (target.getDate() !== expected) return false;
       return monthsBetween(start, target) % 6 === 0;
     }
 
     case 'yearly': {
       if (target < start) return false;
-      if (target.getDate() !== start.getDate()) return false;
       if (target.getMonth() !== start.getMonth()) return false;
-      return true;
+      const expected = canonicalDay(startDay, target.getFullYear(), target.getMonth());
+      return target.getDate() === expected;
     }
 
     default:

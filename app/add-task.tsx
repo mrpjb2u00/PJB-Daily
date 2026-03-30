@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -50,11 +59,13 @@ export default function AddTaskSheet() {
     setDueDate('');
   };
 
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 16);
+
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={90}
+      style={[styles.wrapper, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF' }]}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
@@ -62,128 +73,142 @@ export default function AddTaskSheet() {
         </Text>
       </View>
 
-      <View style={styles.inputWrapper}>
-        <TextInput
-          ref={inputRef}
-          style={[
-            styles.input,
-            {
-              backgroundColor: theme.inputBg,
-              color: theme.text,
-              fontFamily: 'Inter_400Regular',
-              borderColor: theme.border,
-            },
-          ]}
-          placeholder="What do you need to do?"
-          placeholderTextColor={theme.textTertiary}
-          value={text}
-          onChangeText={setText}
-          returnKeyType="done"
-          multiline
-          maxLength={200}
-        />
-      </View>
-
-      {dueDate ? (
-        <View style={styles.dateRow}>
-          <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
-            <Ionicons name="calendar" size={14} color={theme.accent} />
-            <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
-              {formatDateLabel(dueDate)}
-            </Text>
-            <Pressable onPress={handleClearDate} hitSlop={8}>
-              <Ionicons name="close-circle" size={16} color={theme.accent} />
-            </Pressable>
-          </View>
-        </View>
-      ) : null}
-
-      <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-        Repeat
-      </Text>
-
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.recurrenceRow}
-        style={styles.recurrenceScroll}
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {RECURRENCE_OPTIONS.map((opt) => {
-          const isActive = recurrence === opt;
-          return (
-            <Pressable
-              key={opt}
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync();
-                setRecurrence(opt);
-              }}
-              style={[
-                styles.recurrenceChip,
-                {
-                  backgroundColor: isActive ? theme.accent : theme.inputBg,
-                  borderColor: isActive ? theme.accent : theme.border,
-                },
-              ]}
-            >
-              <Text
+        <View style={styles.inputWrapper}>
+          <TextInput
+            ref={inputRef}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.inputBg,
+                color: theme.text,
+                fontFamily: 'Inter_400Regular',
+                borderColor: theme.border,
+              },
+            ]}
+            placeholder="What do you need to do?"
+            placeholderTextColor={theme.textTertiary}
+            value={text}
+            onChangeText={setText}
+            returnKeyType="done"
+            multiline
+            maxLength={200}
+          />
+        </View>
+
+        {dueDate ? (
+          <View style={styles.dateRow}>
+            <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
+              <Ionicons name="calendar" size={14} color={theme.accent} />
+              <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
+                {formatDateLabel(dueDate)}
+              </Text>
+              <Pressable onPress={handleClearDate} hitSlop={8}>
+                <Ionicons name="close-circle" size={16} color={theme.accent} />
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+
+        <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
+          Repeat
+        </Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.recurrenceRow}
+          style={styles.recurrenceScroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          {RECURRENCE_OPTIONS.map((opt) => {
+            const isActive = recurrence === opt;
+            return (
+              <Pressable
+                key={opt}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  setRecurrence(opt);
+                }}
                 style={[
-                  styles.recurrenceText,
+                  styles.recurrenceChip,
                   {
-                    color: isActive ? '#fff' : theme.textSecondary,
-                    fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                    backgroundColor: isActive ? theme.accent : theme.inputBg,
+                    borderColor: isActive ? theme.accent : theme.border,
                   },
                 ]}
               >
-                {RECURRENCE_LABELS[opt]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  style={[
+                    styles.recurrenceText,
+                    {
+                      color: isActive ? '#fff' : theme.textSecondary,
+                      fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                    },
+                  ]}
+                >
+                  {RECURRENCE_LABELS[opt]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
-      <Pressable
-        onPress={handleSave}
-        disabled={!text.trim()}
-        style={({ pressed }) => [
-          styles.saveButton,
-          {
-            backgroundColor: text.trim() ? theme.accent : theme.inputBg,
-            opacity: pressed ? 0.85 : 1,
-            transform: [{ scale: pressed ? 0.98 : 1 }],
-            marginTop: 24,
-          },
-        ]}
-      >
-        <Ionicons name="checkmark" size={22} color={text.trim() ? '#fff' : theme.textTertiary} />
-        <Text
-          style={[
-            styles.saveText,
+        <Pressable
+          onPress={handleSave}
+          disabled={!text.trim()}
+          style={({ pressed }) => [
+            styles.saveButton,
             {
-              color: text.trim() ? '#fff' : theme.textTertiary,
-              fontFamily: 'Inter_600SemiBold',
+              backgroundColor: text.trim() ? theme.accent : theme.inputBg,
+              opacity: pressed ? 0.85 : 1,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+              marginTop: 24,
             },
           ]}
         >
-          {isEditing ? 'Update' : 'Add Task'}
-        </Text>
-      </Pressable>
+          <Ionicons name="checkmark" size={22} color={text.trim() ? '#fff' : theme.textTertiary} />
+          <Text
+            style={[
+              styles.saveText,
+              {
+                color: text.trim() ? '#fff' : theme.textTertiary,
+                fontFamily: 'Inter_600SemiBold',
+              },
+            ]}
+          >
+            {isEditing ? 'Update' : 'Add Task'}
+          </Text>
+        </Pressable>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    justifyContent: 'flex-start',
   },
   header: {
     alignItems: 'center',
+    paddingTop: 8,
     paddingBottom: 16,
+    paddingHorizontal: 20,
   },
   headerTitle: {
     fontSize: 18,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
   },
   inputWrapper: {
     marginBottom: 14,
