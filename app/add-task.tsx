@@ -90,7 +90,7 @@ export default function AddTaskSheet() {
         )}
         <ScrollView
           style={[styles.scroll, { backgroundColor: bg }]}
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad, flexGrow: 1 }]}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
