@@ -1,0 +1,87 @@
+Make a focused logic update to the existing app. Do not redesign the calendar UI yet. Do not spend time polishing the dot indicator. This pass is only about fixing recurrence behavior so the upcoming larger planner calendar will work correctly.
+
+IMPORTANT:
+
+* Build on top of the current working codebase
+* Keep the current navigation, current tabs, and current styling
+* Do not remove any working features
+* Do not redesign the calendar yet
+* Do not change the bottom nav
+* Do not change the login flow that now correctly lands on Calendar
+
+GOAL OF THIS PASS:
+Fix calendar recurrence logic so recurring To-Dos appear on every scheduled date, not just the first assigned date.
+
+CURRENT ISSUE:
+Right now, if a user creates a To-Do for a future date and sets it as recurring weekly, biweekly, monthly, or daily, it only visibly appears on the first assigned date. That is incorrect.
+
+EXPECTED BEHAVIOR:
+The calendar must calculate and display recurring To-Do occurrences across the month based on the task’s start/due date and recurrence pattern.
+
+For example:
+
+* Daily task: appears every day starting from its assigned start/due date
+* Weekly task: appears every 7 days starting from its assigned start/due date
+* Biweekly task: appears every 14 days starting from its assigned start/due date
+* Monthly task: appears on the same day-of-month each month when possible, starting from its assigned start/due date
+
+REQUIREMENTS:
+
+1. RECURRENCE ENGINE
+   Implement or correct the recurrence calculation so the calendar can determine whether a task should appear on a given date.
+   This should be based on:
+
+* task due/start date
+* recurrence type
+* the current calendar month being displayed
+
+2. CALENDAR DISPLAY
+   Without redesigning the UI, make sure the calendar’s existing date indicators/markers reflect all recurring occurrences in the current month, not just the first date.
+
+3. DATE DETAIL CONSISTENCY
+   When a user taps a date in the current calendar, the app should correctly include recurring tasks that fall on that selected date.
+
+4. SUPPORTED RECURRENCE TYPES
+   Handle these correctly:
+
+* none / one-time
+* daily
+* weekly
+* biweekly
+* monthly
+
+5. EDGE CASES
+   Handle these safely:
+
+* tasks with no due/start date should not break the calendar
+* old tasks without a date should be handled gracefully
+* monthly recurrence should be reasonable for dates like the 29th, 30th, 31st
+* recurrence should not duplicate the same task multiple times on a single date
+* timezone/date parsing should be stable and not shift dates incorrectly
+
+6. KEEP CURRENT DATA MODEL IF POSSIBLE
+   Reuse the existing Todo model and current recurrence fields if they already exist.
+   Do not overcomplicate the database.
+   Do not add unnecessary new tables unless absolutely required.
+
+7. PREP FOR NEXT PASS
+   Structure the recurrence logic in a reusable way because the next update will redesign the calendar to show actual To-Do and Note items directly inside each day cell.
+
+DO NOT DO THESE YET:
+
+* do not redesign the calendar layout
+* do not enlarge the calendar yet
+* do not replace dots with item labels yet
+* do not add Notes into the calendar yet
+* do not add color customization yet
+* do not add priority colors yet
+* do not add modals for empty dates yet
+* do not remove the current date task list yet
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how recurrence is now calculated
+2. which files were updated
+3. whether weekly, biweekly, monthly, and daily were all tested
+4. anything I need to manually verify in the app
