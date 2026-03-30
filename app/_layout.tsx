@@ -51,7 +51,7 @@ function RootLayoutNav() {
           presentation: "formSheet",
           sheetAllowedDetents: [0.55],
           sheetGrabberVisible: true,
-          headerShown: true,
+          headerShown: Platform.OS === 'ios',
           title: "New Task",
         }}
       />

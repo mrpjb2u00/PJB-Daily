@@ -70,7 +70,7 @@ export default function AddTaskSheet() {
         options={{
           title: isEditing ? 'Edit Task' : 'New Task',
           headerStyle: { backgroundColor: bg },
-          headerTitleStyle: { color: theme.text, fontFamily: 'Inter_600SemiBold', fontSize: 18 } as any,
+          headerTitleStyle: { color: theme.text, fontFamily: 'Inter_600SemiBold', fontSize: 18 },
           headerShadowVisible: false,
           headerTintColor: theme.text,
         }}
@@ -81,6 +81,13 @@ export default function AddTaskSheet() {
         keyboardVerticalOffset={keyboardOffset}
         enabled={!isIOS}
       >
+        {!isIOS && (
+          <View style={styles.header}>
+            <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+              {isEditing ? 'Edit Task' : 'New Task'}
+            </Text>
+          </View>
+        )}
         <ScrollView
           style={[styles.scroll, { backgroundColor: bg }]}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad, flexGrow: 1 }]}
@@ -204,6 +211,15 @@ export default function AddTaskSheet() {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
   },
   scroll: {
     flex: 1,
