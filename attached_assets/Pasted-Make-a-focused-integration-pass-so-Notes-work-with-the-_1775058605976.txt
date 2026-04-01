@@ -1,0 +1,101 @@
+Make a focused integration pass so Notes work with the planner calendar the same way To-Dos do. Build on top of the current working app. Do not redesign the app. Keep the current planner calendar, Date Details flow, bottom nav, and To-Do behavior intact.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep Calendar as the home screen
+* Keep current recurrence logic for To-Dos exactly as it is
+* Do not break the current To-Do flow
+* Do not redesign the calendar layout
+* Do not remove any working features
+
+CURRENT ISSUE:
+To-Dos are fully integrated with the calendar, but Notes are not. Notes still behave like the old system:
+
+* they are not being assigned dates properly
+* they do not populate on calendar dates
+* they do not appear in Date Details the way To-Dos do
+
+GOALS OF THIS PASS:
+
+1. Add date support to Notes
+2. Make Note creation from Calendar / Date Details prefill the selected date
+3. Show Notes on the calendar for their assigned dates
+4. Show Notes in Date Details for the selected date
+5. Keep Notes visually distinct from To-Dos using a default note color
+
+PART 1 — NOTE DATA MODEL
+Update the Note model/data structure to support a date field safely.
+
+Requirements:
+
+* add a date field to notes
+* handle old notes with no date gracefully
+* do not break existing notes
+* preserve existing note creation/editing behavior
+
+PART 2 — NOTE CREATION / EDITING
+Update note creation and editing flows so notes can carry a date.
+
+Requirements:
+
+* when a user taps an empty calendar day and chooses Create Note, prefill that tapped date
+* when a user is on Date Details and taps Add then Create Note, prefill that selected date
+* when creating a Note from the normal Notes area, support assigning a date in a clean way
+* if the existing Notes UI needs a date pill or similar control like To-Dos use, add it in a way that matches the app style
+* allow clearing/removing a note date if appropriate
+
+PART 3 — CALENDAR INTEGRATION
+Make notes appear on the planner calendar.
+
+Requirements:
+
+* if a note has a date, it should be eligible to display in that date’s calendar cell
+* use the current phone/tablet item limit logic already in place
+* keep To-Dos and Notes mixed correctly when calculating visible items and +X more
+* Notes should use a distinct default visual style/color from To-Dos
+
+PART 4 — DATE DETAILS INTEGRATION
+Update Date Details so it shows both To-Dos and Notes for the selected date.
+
+Requirements:
+
+* separate sections cleanly if both exist
+* if only one type exists, show only that section
+* if there are no items, keep the clean empty state
+* reuse existing card patterns where possible
+* create a visually distinct note card style that matches the app
+
+PART 5 — DEFAULT NOTE COLOR
+Use a default Note color distinct from the To-Do color.
+
+* To-Dos keep the current orange / accent styling
+* Notes should use a clean default blue, teal, or purple that fits the app
+* prepare structure so custom colors can be added later without major rewrites
+
+PART 6 — FUTURE-READY / SAFE CHANGES
+
+* keep code clean and extendable
+* handle old undated notes safely
+* do not add recurrence to notes unless notes already support something similar
+* do not over-engineer
+
+DO NOT DO THESE YET:
+
+* do not redesign the calendar again
+* do not change the bottom nav
+* do not change To-Do recurrence logic
+* do not add priority colors yet
+* do not add custom user-selected colors yet
+* do not add notifications
+* do not add filters
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how notes now store dates
+2. how Create Note behaves from Calendar and Date Details
+3. how notes appear on the calendar
+4. how Date Details now shows notes
+5. what files were updated
+6. what I should manually test next
