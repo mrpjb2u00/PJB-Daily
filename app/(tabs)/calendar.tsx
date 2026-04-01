@@ -224,6 +224,7 @@ export default function CalendarScreen() {
                           styles.dayNumber,
                           { fontFamily: isSelected || isToday ? 'Inter_700Bold' : 'Inter_400Regular' },
                           { color: isSelected ? '#fff' : isToday ? theme.accent : theme.text },
+                          Platform.OS === 'android' && { includeFontPadding: false },
                         ]}
                       >
                         {day}
@@ -236,7 +237,11 @@ export default function CalendarScreen() {
                         style={[styles.taskPill, { backgroundColor: theme.accent + '25' }]}
                       >
                         <Text
-                          style={[styles.taskPillText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}
+                          style={[
+                            styles.taskPillText,
+                            { color: theme.accent, fontFamily: 'Inter_500Medium' },
+                            Platform.OS === 'android' && { includeFontPadding: false },
+                          ]}
                           numberOfLines={1}
                         >
                           {task.title}
@@ -245,7 +250,13 @@ export default function CalendarScreen() {
                     ))}
 
                     {extraCount > 0 && (
-                      <Text style={[styles.moreText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+                      <Text
+                        style={[
+                          styles.moreText,
+                          { color: theme.accent, fontFamily: 'Inter_500Medium' },
+                          Platform.OS === 'android' && { includeFontPadding: false },
+                        ]}
+                      >
                         +{extraCount} more
                       </Text>
                     )}
@@ -400,19 +411,26 @@ const styles = StyleSheet.create({
   taskPill: {
     borderRadius: 3,
     paddingHorizontal: 3,
-    paddingVertical: 2,
-    marginBottom: 2,
     width: '100%',
+    ...Platform.select({
+      android: { paddingVertical: 1.5, marginBottom: 1.5 },
+      default: { paddingVertical: 2, marginBottom: 2 },
+    }),
   },
   taskPillText: {
     fontSize: 9,
-    lineHeight: 11,
+    ...Platform.select({
+      android: { lineHeight: 10 },
+      default: { lineHeight: 11 },
+    }),
   },
   moreText: {
     fontSize: 8.5,
-    lineHeight: 12,
-    marginTop: 1,
     paddingLeft: 3,
+    ...Platform.select({
+      android: { lineHeight: 10, marginTop: 0 },
+      default: { lineHeight: 12, marginTop: 1 },
+    }),
   },
   modalBackdrop: {
     flex: 1,

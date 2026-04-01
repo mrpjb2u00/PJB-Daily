@@ -1,0 +1,59 @@
+Make a focused Android polish pass on the current planner calendar. Do not redesign the app. Keep the current calendar structure and keep Apple device behavior looking the way it does now.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Do not redesign the calendar
+* Do not change recurrence logic
+* Do not change the bottom nav
+* Do not reduce functionality
+* Preserve current iPhone/iPad behavior unless a change is necessary for consistency
+
+GOAL:
+Improve the visual polish of the planner calendar on Android devices so it matches the cleaner look seen on Apple devices.
+
+CURRENT ISSUE:
+On Android phones, the preview items inside calendar day cells look less polished than on Apple devices. The content feels too low / less balanced vertically, and the "+X more" line looks less integrated.
+
+FIX THESE AREAS ON ANDROID:
+
+1. Day cell content alignment
+
+* Improve vertical positioning of visible task preview rows inside each day cell
+* Make the task previews feel properly anchored within the cell
+* Avoid the content looking like it is sagging toward the bottom of the cell
+
+2. Spacing between preview rows
+
+* Slightly refine spacing between visible task rows
+* Keep rows readable but compact
+* Match the polished feel of the Apple layout as closely as possible
+
+3. "+X more" positioning
+
+* Make the "+X more" line feel aligned with the preview items
+* Avoid awkward extra gap above or below it
+* Keep it subtle and readable
+
+4. Overall Android calendar polish
+
+* Ensure the bottom portion of populated cells feels visually balanced
+* Keep date numbers, preview rows, and remaining space feeling intentional
+* Maintain current responsive behavior (2 visible items on phones, 3 on larger screens)
+
+DO NOT DO THESE:
+
+* Do not redesign the calendar
+* Do not enlarge the calendar drastically
+* Do not change the number of visible items
+* Do not alter DateDetails navigation
+* Do not add Notes yet
+* Do not make Apple look worse while fixing Android
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. what Android-specific layout adjustments were made
+2. which files were changed
+3. whether Apple layouts were preserved
+4. what I should test on Android next
