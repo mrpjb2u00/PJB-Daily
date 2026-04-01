@@ -1,0 +1,106 @@
+Upgrade the Calendar screen into a planner-style calendar. Build on top of the current working app. Do not break existing functionality. Do not change navigation structure.
+
+IMPORTANT:
+
+* Keep the current design language and branding
+* Keep Calendar as the home screen
+* Keep recurrence logic exactly as it is (already working)
+* Do not remove any existing task data functionality
+
+GOALS:
+Transform the Calendar into a planner view where tasks are shown directly inside each day.
+
+PART 1 — CALENDAR UI EXPANSION
+
+* Increase the height of each calendar row/day cell
+* Allow each day cell to display content under the date number
+* Keep the grid clean and readable
+* Ensure it works well on both iPhone and Android
+
+Each day cell should now contain:
+
+* Date number
+* Up to 3 items (To-Dos for now)
+
+PART 2 — SHOW TASKS INSIDE EACH DAY
+
+* For each day in the current month:
+
+  * Get all tasks that fall on that date (including recurrence logic)
+  * Display up to 3 tasks inside that day cell
+
+Task display:
+
+* Use a small rounded label or text row
+* Truncate long text with ellipsis if needed
+* Keep it visually clean
+
+If more than 3 tasks exist:
+
+* Show a 4th line that says "+X more"
+
+PART 3 — REMOVE BOTTOM TASK LIST
+
+* Remove the current selected-date task list below the calendar
+* The calendar itself is now the primary view
+
+PART 4 — DATE TAP BEHAVIOR
+
+When user taps a day:
+
+IF the day HAS tasks:
+
+* Navigate to a new screen: DateDetailsScreen
+
+IF the day has NO tasks:
+
+* Show a modal with:
+
+  * "Create To-Do"
+  * "Create Note"
+  * "Cancel"
+
+PART 5 — DATE DETAILS SCREEN (NEW)
+
+Create a new screen (not in bottom nav):
+
+It should show:
+
+* Selected date at top
+* List of all tasks for that date
+* Reuse existing task card design
+
+Navigation:
+
+* Push onto stack (not a tab)
+* Allow back navigation
+
+PART 6 — COLOR SYSTEM (BASIC)
+
+* All To-Dos use the existing orange accent color
+* Style should match the app
+* Do not add custom colors yet
+* Do not add Notes yet (just prepare for it)
+
+PART 7 — PERFORMANCE
+
+* Ensure calendar rendering is efficient
+* Do not cause lag when switching months
+* Avoid recalculating everything unnecessarily
+
+DO NOT DO THESE YET:
+
+* Do not add Notes into the calendar yet
+* Do not add drag-and-drop
+* Do not add time-of-day scheduling
+* Do not add filters
+* Do not redesign the entire app
+
+WHEN FINISHED:
+Explain:
+
+1. how tasks are injected into calendar cells
+2. how "+more" is calculated
+3. how DateDetailsScreen works
+4. what files were added/modified
+5. what I should test
