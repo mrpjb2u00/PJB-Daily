@@ -1,0 +1,136 @@
+Make a focused refinement pass on the current Date Details screen and empty-day create flow. Build on top of the current working app. Do not redesign the entire app. Keep the current planner calendar, bottom nav, recurrence logic, and general branding/style.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep Calendar as the home screen
+* Keep the current planner calendar structure and day-cell behavior
+* Keep recurrence behavior exactly as it is now
+* Do not remove any working features
+* Do not redesign the whole app
+
+GOALS OF THIS PASS:
+
+1. Upgrade the Date Details screen so it feels more complete and premium
+2. Add Notes support to the Date Details experience
+3. Add default visual distinction between To-Dos and Notes
+4. Improve the empty-day create modal so it feels polished and intentional
+5. Keep everything clean on both Android and iPhone
+
+PART 1 — DATE DETAILS SCREEN UPGRADE
+
+Upgrade the Date Details screen so it feels more like a finished screen, not just a basic list.
+
+Add / improve the following:
+
+1. Header improvements
+
+* Keep the selected date prominently shown at the top
+* Add a small item count under or near the title, such as:
+
+  * “5 items”
+  * or separate counts if helpful, like “3 To-Dos • 2 Notes”
+* Keep the design consistent with the app’s style
+
+2. Support both To-Dos and Notes
+
+* Show both To-Dos and Notes for the selected date
+* If both exist, use clearly separated sections:
+
+  * To-Dos
+  * Notes
+* If only one type exists, show only that section cleanly
+* If Notes do not yet support date assignment fully, wire this as far as the current architecture reasonably allows and structure the code so dated Notes can be supported cleanly next
+
+3. Reuse and polish card layout
+
+* Reuse the existing task card style for To-Dos where appropriate
+* Create a matching note card style for Notes
+* Maintain a polished, readable layout with good spacing
+
+4. Empty state inside Date Details
+
+* If there are no items for the selected date, show a polished empty state
+* Include actions for:
+
+  * Add To-Do
+  * Add Note
+
+PART 2 — DEFAULT COLOR FOUNDATION
+
+Add a simple default content color system for date-based items:
+
+* To-Dos:
+
+  * use the existing orange / brand-accent styling
+* Notes:
+
+  * use a distinct default color such as blue, teal, or purple that fits the app
+
+Apply this carefully:
+
+* In Date Details screen sections/cards
+* In any labels/chips/badges that distinguish content types
+* Prepare the structure so later custom user-selected colors can be added without rewriting everything
+
+IMPORTANT:
+
+* Do not add user custom colors yet
+* Do not add priority logic yet
+* Just create a clean default visual distinction between To-Dos and Notes
+
+PART 3 — EMPTY-DAY MODAL POLISH
+
+The empty-day modal already works. Upgrade it so it feels more premium and intentional.
+
+Improve:
+
+* spacing
+* typography
+* hierarchy
+* button sizing
+* light/dark mode appearance
+* overall polish
+
+Keep behavior:
+
+* Create To-Do
+* Create Note
+* Cancel
+
+Behavior expectations:
+
+* Create To-Do should still prefill the tapped date
+* Create Note should route into the cleanest existing note creation flow, and prefill the selected date if current note architecture supports it
+* If note date-prefill is not fully supported yet, structure the code so it can be added easily in the next pass
+
+PART 4 — FUTURE-READY STRUCTURE
+
+Keep the code organized so later we can easily add:
+
+* priority colors
+* custom user-selected colors
+* notes directly inside calendar cells
+* richer date details content
+
+Do not over-engineer, just keep it clean and extendable.
+
+DO NOT DO THESE YET:
+
+* Do not redesign the main planner calendar again
+* Do not change day-cell item limits
+* Do not change recurrence logic
+* Do not add drag-and-drop
+* Do not add notifications
+* Do not add filters yet
+* Do not change the bottom nav
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. what changed on the Date Details screen
+2. how Notes are now handled on that screen
+3. what default colors are used for To-Dos vs Notes
+4. what was improved in the empty-day modal
+5. what files were added or updated
+6. what I should manually test next

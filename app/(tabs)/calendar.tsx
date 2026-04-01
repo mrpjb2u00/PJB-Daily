@@ -279,8 +279,13 @@ export default function CalendarScreen() {
             style={[styles.modalSheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onStartShouldSetResponder={() => true}
           >
-            <Text style={[styles.modalDateLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+            <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
+
+            <Text style={[styles.modalDateLabel, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
               {formatDateLabel(actionModal.date)}
+            </Text>
+            <Text style={[styles.modalSubtitle, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+              What would you like to add?
             </Text>
 
             <Pressable
@@ -290,7 +295,9 @@ export default function CalendarScreen() {
                 router.push({ pathname: '/add-task', params: { defaultDate: actionModal.date } });
               }}
             >
-              <Ionicons name="checkmark-circle" size={18} color="#fff" />
+              <View style={styles.modalBtnIcon}>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              </View>
               <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
                 Create To-Do
               </Text>
@@ -299,15 +306,17 @@ export default function CalendarScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.modalBtn,
-                { backgroundColor: theme.surfaceSecondary, borderColor: theme.border, borderWidth: 1, opacity: pressed ? 0.85 : 1 },
+                { backgroundColor: theme.accentSecondary, opacity: pressed ? 0.85 : 1 },
               ]}
               onPress={() => {
                 closeModal();
-                router.push('/edit-note');
+                router.push({ pathname: '/edit-note', params: { prefillDate: actionModal.date } });
               }}
             >
-              <Ionicons name="document-text" size={18} color={theme.text} />
-              <Text style={[styles.modalBtnText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+              <View style={styles.modalBtnIcon}>
+                <Ionicons name="document-text" size={20} color="#fff" />
+              </View>
+              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
                 Create Note
               </Text>
             </Pressable>
@@ -434,38 +443,56 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 14,
+    paddingBottom: 28,
   },
   modalSheet: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 18,
     gap: 10,
   },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
   modalDateLabel: {
+    fontSize: 20,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  modalSubtitle: {
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   modalBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    gap: 12,
+  },
+  modalBtnIcon: {
+    width: 24,
+    alignItems: 'center',
   },
   modalBtnText: {
     fontSize: 16,
+    flex: 1,
   },
   modalCancelBtn: {
     alignItems: 'center',
     paddingVertical: 10,
+    marginTop: 2,
   },
   modalCancelText: {
     fontSize: 15,
