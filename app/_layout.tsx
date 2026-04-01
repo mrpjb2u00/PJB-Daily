@@ -53,6 +53,12 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
+        name="date-details"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="edit-note"
         options={{
           presentation: "modal",

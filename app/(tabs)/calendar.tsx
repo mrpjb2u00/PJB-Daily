@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
-  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,24 +17,25 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import TodoItem from '@/components/TodoItem';
 import { router } from 'expo-router';
-import { getDatesWithTasksInMonth, getTasksForDate } from '@/utils/recurrence';
+import { getTasksMapForMonth } from '@/utils/recurrence';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
+const MAX_VISIBLE = 3;
 
 function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function formatSelectedDate(dateStr: string): string {
+function formatDateLabel(dateStr: string): string {
+  if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-').map(Number);
   const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 function getGreeting(): string {
@@ -48,7 +49,7 @@ export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const { todos, toggleTodo, deleteTodo, isLoading } = useTodos();
+  const { todos } = useTodos();
   const { selectedDate, setSelectedDate } = useCalendarContext();
 
   const today = new Date().toISOString().split('T')[0];
@@ -62,16 +63,16 @@ export default function CalendarScreen() {
     return m - 1;
   });
 
+  const [actionModal, setActionModal] = useState<{ visible: boolean; date: string }>({
+    visible: false,
+    date: '',
+  });
+
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  const datesWithTasks = useMemo(
-    () => getDatesWithTasksInMonth(todos, viewYear, viewMonth),
+  const tasksMap = useMemo(
+    () => getTasksMapForMonth(todos, viewYear, viewMonth),
     [todos, viewYear, viewMonth],
-  );
-
-  const tasksForSelected = useMemo(
-    () => getTasksForDate(todos, selectedDate),
-    [todos, selectedDate],
   );
 
   const calendarDays = useMemo(() => {
@@ -102,16 +103,21 @@ export default function CalendarScreen() {
 
   const handleDayPress = useCallback((day: number) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
-    setSelectedDate(toDateStr(viewYear, viewMonth, day));
-  }, [viewYear, viewMonth, setSelectedDate]);
+    const dateStr = toDateStr(viewYear, viewMonth, day);
+    setSelectedDate(dateStr);
+    const cellTasks = tasksMap.get(dateStr);
+    if (cellTasks && cellTasks.length > 0) {
+      router.push({ pathname: '/date-details', params: { date: dateStr } });
+    } else {
+      setActionModal({ visible: true, date: dateStr });
+    }
+  }, [viewYear, viewMonth, setSelectedDate, tasksMap]);
 
-  const handleEditTask = useCallback((item: any) => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
-      pathname: '/add-task',
-      params: { id: item.id, title: item.title, recurrence: item.recurrence, defaultDate: item.dueDate || '' },
-    });
+  const closeModal = useCallback(() => {
+    setActionModal((prev) => ({ ...prev, visible: false }));
   }, []);
+
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 12;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -138,7 +144,7 @@ export default function CalendarScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
       >
         <Animated.View entering={FadeInDown.duration(350).delay(80)}>
           <View style={[styles.calendarCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -160,7 +166,7 @@ export default function CalendarScreen() {
               </Pressable>
             </View>
 
-            <View style={styles.dayHeaders}>
+            <View style={[styles.dayHeaders, { borderBottomColor: theme.border + '60' }]}>
               {DAYS.map((d) => (
                 <View key={d} style={styles.dayHeaderCell}>
                   <Text style={[styles.dayHeaderText, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
@@ -173,29 +179,41 @@ export default function CalendarScreen() {
             <View style={styles.grid}>
               {calendarDays.map((day, idx) => {
                 if (!day) {
-                  return <View key={`empty-${idx}`} style={styles.dayCell} />;
+                  return (
+                    <View
+                      key={`empty-${idx}`}
+                      style={[styles.dayCell, { borderColor: theme.border + '40' }]}
+                    />
+                  );
                 }
                 const dateStr = toDateStr(viewYear, viewMonth, day);
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
-                const hasTasks = datesWithTasks.has(dateStr);
+                const cellTasks = tasksMap.get(dateStr) || [];
+                const visibleTasks = cellTasks.slice(0, MAX_VISIBLE);
+                const extraCount = cellTasks.length - MAX_VISIBLE;
 
                 return (
                   <Pressable
                     key={dateStr}
                     onPress={() => handleDayPress(day)}
-                    style={styles.dayCell}
+                    style={({ pressed }) => [
+                      styles.dayCell,
+                      { borderColor: theme.border + '40' },
+                      isSelected && { backgroundColor: theme.accent + '18' },
+                      pressed && { opacity: 0.75 },
+                    ]}
                   >
                     <View
                       style={[
-                        styles.dayInner,
+                        styles.dayNumberWrap,
                         isSelected && { backgroundColor: theme.accent },
-                        !isSelected && isToday && { borderWidth: 2, borderColor: theme.accent },
+                        !isSelected && isToday && { backgroundColor: theme.accent + '22' },
                       ]}
                     >
                       <Text
                         style={[
-                          styles.dayText,
+                          styles.dayNumber,
                           { fontFamily: isSelected || isToday ? 'Inter_700Bold' : 'Inter_400Regular' },
                           { color: isSelected ? '#fff' : isToday ? theme.accent : theme.text },
                         ]}
@@ -203,8 +221,25 @@ export default function CalendarScreen() {
                         {day}
                       </Text>
                     </View>
-                    {hasTasks && (
-                      <View style={[styles.dot, { backgroundColor: isSelected ? 'rgba(255,255,255,0.9)' : theme.accent }]} />
+
+                    {visibleTasks.map((task) => (
+                      <View
+                        key={task.id}
+                        style={[styles.taskPill, { backgroundColor: theme.accent + '25' }]}
+                      >
+                        <Text
+                          style={[styles.taskPillText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}
+                          numberOfLines={1}
+                        >
+                          {task.title}
+                        </Text>
+                      </View>
+                    ))}
+
+                    {extraCount > 0 && (
+                      <Text style={[styles.moreText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                        +{extraCount}
+                      </Text>
                     )}
                   </Pressable>
                 );
@@ -212,38 +247,60 @@ export default function CalendarScreen() {
             </View>
           </View>
         </Animated.View>
+      </ScrollView>
 
-        <Animated.View entering={FadeInDown.duration(350).delay(160)}>
-          <View style={styles.tasksSection}>
-            <Text style={[styles.dateLabel, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-              {formatSelectedDate(selectedDate)}
+      <Modal
+        transparent
+        visible={actionModal.visible}
+        animationType="fade"
+        onRequestClose={closeModal}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={closeModal}>
+          <View
+            style={[styles.modalSheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text style={[styles.modalDateLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+              {formatDateLabel(actionModal.date)}
             </Text>
 
-            {isLoading ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator size="small" color={theme.accent} />
-              </View>
-            ) : tasksForSelected.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="calendar-outline" size={36} color={theme.textTertiary} />
-                <Text style={[styles.emptyText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                  No tasks for this day
-                </Text>
-              </View>
-            ) : (
-              tasksForSelected.map((item) => (
-                <TodoItem
-                  key={item.id}
-                  item={item}
-                  onToggle={() => toggleTodo(item.id)}
-                  onEdit={() => handleEditTask(item)}
-                  onDelete={() => deleteTodo(item.id)}
-                />
-              ))
-            )}
+            <Pressable
+              style={({ pressed }) => [styles.modalBtn, { backgroundColor: theme.accent, opacity: pressed ? 0.85 : 1 }]}
+              onPress={() => {
+                closeModal();
+                router.push({ pathname: '/add-task', params: { defaultDate: actionModal.date } });
+              }}
+            >
+              <Ionicons name="checkmark-circle" size={18} color="#fff" />
+              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
+                Create To-Do
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalBtn,
+                { backgroundColor: theme.surfaceSecondary, borderColor: theme.border, borderWidth: 1, opacity: pressed ? 0.85 : 1 },
+              ]}
+              onPress={() => {
+                closeModal();
+                router.push('/edit-note');
+              }}
+            >
+              <Ionicons name="document-text" size={18} color={theme.text} />
+              <Text style={[styles.modalBtnText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+                Create Note
+              </Text>
+            </Pressable>
+
+            <Pressable style={styles.modalCancelBtn} onPress={closeModal}>
+              <Text style={[styles.modalCancelText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                Cancel
+              </Text>
+            </Pressable>
           </View>
-        </Animated.View>
-      </ScrollView>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -268,20 +325,21 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   calendarCard: {
     borderRadius: 18,
     borderWidth: 1,
-    padding: 16,
-    marginBottom: 24,
+    overflow: 'hidden',
   },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 10,
   },
   navBtn: {
     width: 34,
@@ -295,12 +353,12 @@ const styles = StyleSheet.create({
   },
   dayHeaders: {
     flexDirection: 'row',
-    marginBottom: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 6,
   },
   dayHeaderCell: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 4,
   },
   dayHeaderText: {
     fontSize: 11,
@@ -311,42 +369,79 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: `${100 / 7}%`,
-    aspectRatio: 1,
+    height: 82,
+    paddingTop: 4,
+    paddingHorizontal: 2,
+    paddingBottom: 3,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  dayNumberWrap: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 3,
+    alignSelf: 'center',
   },
-  dayInner: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  dayNumber: {
+    fontSize: 12,
   },
-  dayText: {
-    fontSize: 14,
-  },
-  dot: {
-    width: 5,
-    height: 5,
+  taskPill: {
     borderRadius: 3,
-    marginTop: 3,
+    paddingHorizontal: 3,
+    paddingVertical: 1.5,
+    marginBottom: 1.5,
+    width: '100%',
   },
-  tasksSection: {
+  taskPillText: {
+    fontSize: 9,
+    lineHeight: 12,
+  },
+  moreText: {
+    fontSize: 8.5,
+    lineHeight: 11,
+    marginTop: 0.5,
+    textAlign: 'center',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  modalSheet: {
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
     gap: 10,
   },
-  dateLabel: {
-    fontSize: 13,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+  modalDateLabel: {
+    fontSize: 14,
+    textAlign: 'center',
     marginBottom: 4,
   },
-  emptyState: {
+  modalBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 32,
-    gap: 10,
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
   },
-  emptyText: {
-    fontSize: 14,
+  modalBtnText: {
+    fontSize: 16,
+  },
+  modalCancelBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  modalCancelText: {
+    fontSize: 15,
   },
 });

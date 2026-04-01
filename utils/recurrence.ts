@@ -108,3 +108,27 @@ export function getDatesWithTasksInMonth(
 
   return set;
 }
+
+export function getTasksMapForMonth(
+  todos: Todo[],
+  year: number,
+  month: number,
+): Map<string, Todo[]> {
+  const map = new Map<string, Todo[]>();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const tasks: Todo[] = [];
+    for (const todo of todos) {
+      if (taskOccursOnDate(todo, dateStr)) {
+        tasks.push(todo);
+      }
+    }
+    if (tasks.length > 0) {
+      map.set(dateStr, tasks);
+    }
+  }
+
+  return map;
+}
