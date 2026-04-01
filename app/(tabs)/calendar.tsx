@@ -17,9 +17,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos } from '@/contexts/TodoContext';
+import { useNotes } from '@/contexts/NotesContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { router } from 'expo-router';
-import { getTasksMapForMonth } from '@/utils/recurrence';
+import { getItemsMapForMonth } from '@/utils/recurrence';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
@@ -52,6 +53,7 @@ export default function CalendarScreen() {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { todos } = useTodos();
+  const { notes } = useNotes();
   const { selectedDate, setSelectedDate } = useCalendarContext();
 
   const isTablet = screenWidth >= TABLET_BREAKPOINT;
@@ -78,9 +80,9 @@ export default function CalendarScreen() {
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  const tasksMap = useMemo(
-    () => getTasksMapForMonth(todos, viewYear, viewMonth),
-    [todos, viewYear, viewMonth],
+  const itemsMap = useMemo(
+    () => getItemsMapForMonth(todos, notes, viewYear, viewMonth),
+    [todos, notes, viewYear, viewMonth],
   );
 
   const calendarDays = useMemo(() => {
@@ -113,13 +115,13 @@ export default function CalendarScreen() {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
     const dateStr = toDateStr(viewYear, viewMonth, day);
     setSelectedDate(dateStr);
-    const cellTasks = tasksMap.get(dateStr);
-    if (cellTasks && cellTasks.length > 0) {
+    const cellItems = itemsMap.get(dateStr);
+    if (cellItems && cellItems.length > 0) {
       router.push({ pathname: '/date-details', params: { date: dateStr } });
     } else {
       setActionModal({ visible: true, date: dateStr });
     }
-  }, [viewYear, viewMonth, setSelectedDate, tasksMap]);
+  }, [viewYear, viewMonth, setSelectedDate, itemsMap]);
 
   const closeModal = useCallback(() => {
     setActionModal((prev) => ({ ...prev, visible: false }));
@@ -197,9 +199,9 @@ export default function CalendarScreen() {
                 const dateStr = toDateStr(viewYear, viewMonth, day);
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
-                const cellTasks = tasksMap.get(dateStr) || [];
-                const visibleTasks = cellTasks.slice(0, maxVisible);
-                const extraCount = cellTasks.length - maxVisible;
+                const cellItems = itemsMap.get(dateStr) || [];
+                const visibleItems = cellItems.slice(0, maxVisible);
+                const extraCount = cellItems.length - maxVisible;
 
                 return (
                   <Pressable
@@ -231,23 +233,26 @@ export default function CalendarScreen() {
                       </Text>
                     </View>
 
-                    {visibleTasks.map((task) => (
-                      <View
-                        key={task.id}
-                        style={[styles.taskPill, { backgroundColor: theme.accent + '25' }]}
-                      >
-                        <Text
-                          style={[
-                            styles.taskPillText,
-                            { color: theme.accent, fontFamily: 'Inter_500Medium' },
-                            Platform.OS === 'android' && { includeFontPadding: false },
-                          ]}
-                          numberOfLines={1}
+                    {visibleItems.map((item) => {
+                      const pillColor = item.type === 'note' ? theme.accentSecondary : theme.accent;
+                      return (
+                        <View
+                          key={item.id}
+                          style={[styles.taskPill, { backgroundColor: pillColor + '25' }]}
                         >
-                          {task.title}
-                        </Text>
-                      </View>
-                    ))}
+                          <Text
+                            style={[
+                              styles.taskPillText,
+                              { color: pillColor, fontFamily: 'Inter_500Medium' },
+                              Platform.OS === 'android' && { includeFontPadding: false },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {item.title}
+                          </Text>
+                        </View>
+                      );
+                    })}
 
                     {extraCount > 0 && (
                       <Text

@@ -18,10 +18,11 @@ Preferred communication style: Simple, everyday language.
   - `ThemeContext` — dark/light mode toggle, persisted via AsyncStorage
   - `AuthContext` — Supabase-only authentication (signInWithPassword, signUp, signOut) with session persistence. No local fallback — requires Supabase to be configured via `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` environment variables.
   - `TodoContext` — CRUD operations for todos with recurrence support and optional `dueDate` (YYYY-MM-DD), persisted in Supabase `todos` table per user. Probes for `due_date` column at startup and gracefully skips it if missing.
-  - `NotesContext` — CRUD operations for notes, persisted in Supabase `notes` table per user
+  - `NotesContext` — CRUD operations for notes with optional `date` (YYYY-MM-DD) field, persisted in Supabase `notes` table per user. Probes for `date` column at startup and gracefully skips it if missing. Exposes `noteDateSupported` boolean.
   - `CalendarContext` — lightweight shared state for the calendar's selected date (string YYYY-MM-DD). Used by CalendarScreen and CustomTabBar (so + button passes the selected date to add-task).
-- **Calendar screen (`app/(tabs)/calendar.tsx`)**: Planner-style grid with fixed-height cells (82px). Each cell shows the date number at the top + up to 3 small accent-colored task pills + "+N more" overflow label. Tapping a cell with tasks navigates to DateDetails; tapping an empty cell shows an action modal. Task data comes from `getTasksMapForMonth()` in `utils/recurrence.ts`.
-- **Date Details screen (`app/date-details.tsx`)**: Shows all tasks for a selected date. Custom header with back chevron, formatted date, and a + button to add a task for that day. Full CRUD (toggle, edit → `add-task` modal, delete) via TodoContext.
+- **Calendar screen (`app/(tabs)/calendar.tsx`)**: Planner-style grid with fixed-height cells. Each cell shows the date number at the top + up to N small colored item pills + "+N more" overflow. To-Do pills are orange (theme.accent); Note pills are teal (theme.accentSecondary). Tapping a cell with any items navigates to DateDetails; tapping an empty cell shows an action modal. Item data comes from `getItemsMapForMonth()` in `utils/recurrence.ts` which combines todos and dated notes.
+- **Date Details screen (`app/date-details.tsx`)**: Shows all To-Dos and Notes for a selected date. Header shows date + live item count ("3 To-Dos · 2 Notes"). Separate colored sections for To-Dos (orange) and Notes (teal). Empty state with Add To-Do + Add Note action buttons. Full CRUD for both types.
+- **Note creation flow**: `edit-note.tsx` accepts `prefillDate` param (passed from calendar modal and Date Details modal). Shows a teal date pill with clear button when `noteDateSupported=true`. Date is saved to Supabase `notes.date` column.
 - **Data Persistence**: Todos and notes are stored in Supabase PostgreSQL tables with Row Level Security (RLS) ensuring per-user data isolation. Theme preference is stored locally via AsyncStorage. Authentication is handled exclusively by Supabase (no local auth fallback).
 - **Styling**: Custom color system defined in `constants/colors.ts` with light and dark themes. Uses Inter font family loaded via `@expo-google-fonts/inter`. No CSS-in-JS library — uses React Native `StyleSheet.create`.
 - **Animations**: `react-native-reanimated` for item animations (fade in/out, spring press effects)
@@ -38,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 ### Supabase Database
 
 - **Todos table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `completed` (boolean), `recurrence` (text), `last_completed_at` (timestamptz), `created_at` (timestamptz), `due_date` (date, nullable — **requires manual migration**: `ALTER TABLE todos ADD COLUMN IF NOT EXISTS due_date date;`)
-- **Notes table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `content` (text), `created_at` (timestamptz), `updated_at` (timestamptz)
+- **Notes table**: `id` (UUID, PK), `user_id` (UUID, FK to auth.users), `title` (text), `content` (text), `created_at` (timestamptz), `updated_at` (timestamptz), `date` (date, nullable — **requires manual migration**: `ALTER TABLE notes ADD COLUMN IF NOT EXISTS date date;`)
 - **Row Level Security (RLS)**: Enabled on both tables. Each user can only SELECT, INSERT, UPDATE, DELETE their own rows (via `auth.uid() = user_id` policies).
 - **Drizzle ORM**: Also configured via `drizzle.config.ts` with a `users` table in `shared/schema.ts`, but not actively used by the app (Supabase client is used directly).
 

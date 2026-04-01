@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Platform, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -8,17 +16,27 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotes } from '@/contexts/NotesContext';
 
+function formatDateLabel(dateStr: string): string {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
 export default function EditNoteScreen() {
   const { theme, isDark } = useTheme();
-  const { notes, addNote, updateNote } = useNotes();
+  const { notes, addNote, updateNote, noteDateSupported } = useNotes();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; prefillDate?: string }>();
   const isEditing = !!params.id;
 
   const existingNote = isEditing ? notes.find((n) => n.id === params.id) : undefined;
 
   const [title, setTitle] = useState(existingNote?.title || '');
   const [content, setContent] = useState(existingNote?.content || '');
+  const [date, setDate] = useState<string>(
+    existingNote?.date || params.prefillDate || '',
+  );
   const titleRef = useRef<TextInput>(null);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
@@ -33,14 +51,20 @@ export default function EditNoteScreen() {
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     if (isEditing && params.id) {
-      updateNote(params.id, title, content);
+      updateNote(params.id, title, content, date || undefined);
     } else {
-      addNote(title, content);
+      addNote(title, content, date || undefined);
     }
     router.back();
   };
 
+  const handleClearDate = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDate('');
+  };
+
   const hasContent = title.trim() || content.trim();
+  const noteColor = theme.accentSecondary;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -73,7 +97,7 @@ export default function EditNoteScreen() {
           hitSlop={8}
           style={[styles.headerBtn, { opacity: hasContent ? 1 : 0.4 }]}
         >
-          <Ionicons name="checkmark" size={24} color={theme.accent} />
+          <Ionicons name="checkmark" size={24} color={noteColor} />
         </Pressable>
       </View>
 
@@ -95,6 +119,39 @@ export default function EditNoteScreen() {
             onChangeText={setTitle}
             maxLength={100}
           />
+
+          {noteDateSupported && (
+            <View style={styles.dateRow}>
+              {date ? (
+                <View
+                  style={[
+                    styles.datePill,
+                    {
+                      backgroundColor: noteColor + '18',
+                      borderColor: noteColor + '40',
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="calendar" size={14} color={noteColor} />
+                  <Text
+                    style={[styles.dateText, { color: noteColor, fontFamily: 'Inter_600SemiBold' }]}
+                  >
+                    {formatDateLabel(date)}
+                  </Text>
+                  <Pressable onPress={handleClearDate} hitSlop={8}>
+                    <Ionicons name="close-circle" size={16} color={noteColor} />
+                  </Pressable>
+                </View>
+              ) : (
+                <Text
+                  style={[styles.datePlaceholder, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}
+                >
+                  No date — note won't appear on calendar
+                </Text>
+              )}
+            </View>
+          )}
 
           <TextInput
             style={[
@@ -143,8 +200,29 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: 24,
-    marginBottom: 16,
+    marginBottom: 12,
     paddingVertical: 4,
+  },
+  dateRow: {
+    marginBottom: 14,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  datePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  dateText: {
+    fontSize: 13,
+  },
+  datePlaceholder: {
+    fontSize: 13,
+    fontStyle: 'italic',
   },
   contentInput: {
     flex: 1,

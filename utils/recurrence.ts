@@ -132,3 +132,42 @@ export function getTasksMapForMonth(
 
   return map;
 }
+
+export interface CalendarItem {
+  id: string;
+  title: string;
+  type: 'todo' | 'note';
+}
+
+export function getItemsMapForMonth(
+  todos: Todo[],
+  notes: Array<{ id: string; title: string; date?: string }>,
+  year: number,
+  month: number,
+): Map<string, CalendarItem[]> {
+  const map = new Map<string, CalendarItem[]>();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const items: CalendarItem[] = [];
+
+    for (const todo of todos) {
+      if (taskOccursOnDate(todo, dateStr)) {
+        items.push({ id: todo.id, title: todo.title, type: 'todo' });
+      }
+    }
+
+    for (const note of notes) {
+      if (note.date === dateStr) {
+        items.push({ id: note.id, title: note.title, type: 'note' });
+      }
+    }
+
+    if (items.length > 0) {
+      map.set(dateStr, items);
+    }
+  }
+
+  return map;
+}
