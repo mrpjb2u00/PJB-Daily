@@ -238,7 +238,7 @@ export default function CalendarScreen() {
 
                     {extraCount > 0 && (
                       <Text style={[styles.moreText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                        +{extraCount}
+                        +{extraCount} more
                       </Text>
                     )}
                   </Pressable>
@@ -384,7 +384,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 3,
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
+    marginLeft: 1,
   },
   dayNumber: {
     fontSize: 12,
