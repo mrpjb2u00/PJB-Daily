@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,7 @@ const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-const MAX_VISIBLE = 3;
+const TABLET_BREAKPOINT = 768;
 
 function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -47,10 +48,17 @@ function getGreeting(): string {
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { todos } = useTodos();
   const { selectedDate, setSelectedDate } = useCalendarContext();
+
+  const isTablet = screenWidth >= TABLET_BREAKPOINT;
+  const maxVisible = isTablet ? 3 : 2;
+  // Phone: date circle (22) + 2 pills (15ea) + gap + "+X more" (12) + padding = 76
+  // Tablet: date circle (24) + 3 pills (16ea) + gap + "+X more" (13) + padding = 96
+  const cellHeight = isTablet ? 96 : 76;
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -182,7 +190,7 @@ export default function CalendarScreen() {
                   return (
                     <View
                       key={`empty-${idx}`}
-                      style={[styles.dayCell, { borderColor: theme.border + '40' }]}
+                      style={[styles.dayCell, { borderColor: theme.border + '40', height: cellHeight }]}
                     />
                   );
                 }
@@ -190,8 +198,8 @@ export default function CalendarScreen() {
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
                 const cellTasks = tasksMap.get(dateStr) || [];
-                const visibleTasks = cellTasks.slice(0, MAX_VISIBLE);
-                const extraCount = cellTasks.length - MAX_VISIBLE;
+                const visibleTasks = cellTasks.slice(0, maxVisible);
+                const extraCount = cellTasks.length - maxVisible;
 
                 return (
                   <Pressable
@@ -199,7 +207,7 @@ export default function CalendarScreen() {
                     onPress={() => handleDayPress(day)}
                     style={({ pressed }) => [
                       styles.dayCell,
-                      { borderColor: theme.border + '40' },
+                      { borderColor: theme.border + '40', height: cellHeight },
                       isSelected && { backgroundColor: theme.accent + '18' },
                       pressed && { opacity: 0.75 },
                     ]}
@@ -237,7 +245,7 @@ export default function CalendarScreen() {
                     ))}
 
                     {extraCount > 0 && (
-                      <Text style={[styles.moreText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                      <Text style={[styles.moreText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
                         +{extraCount} more
                       </Text>
                     )}
@@ -369,10 +377,9 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: `${100 / 7}%`,
-    height: 82,
-    paddingTop: 4,
+    paddingTop: 5,
     paddingHorizontal: 2,
-    paddingBottom: 3,
+    paddingBottom: 4,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
@@ -393,19 +400,19 @@ const styles = StyleSheet.create({
   taskPill: {
     borderRadius: 3,
     paddingHorizontal: 3,
-    paddingVertical: 1.5,
-    marginBottom: 1.5,
+    paddingVertical: 2,
+    marginBottom: 2,
     width: '100%',
   },
   taskPillText: {
     fontSize: 9,
-    lineHeight: 12,
+    lineHeight: 11,
   },
   moreText: {
     fontSize: 8.5,
-    lineHeight: 11,
-    marginTop: 0.5,
-    textAlign: 'center',
+    lineHeight: 12,
+    marginTop: 1,
+    paddingLeft: 3,
   },
   modalBackdrop: {
     flex: 1,

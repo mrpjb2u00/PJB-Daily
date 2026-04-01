@@ -1,0 +1,67 @@
+Make a focused refinement to the current planner calendar. Do not redesign the app. Keep the current layout, styling, and behavior, but improve day-cell density and responsiveness.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep Calendar as the home screen
+* Keep the current bottom nav
+* Keep recurrence logic as-is
+* Keep the current planner calendar structure
+* Do not remove any working features
+
+GOAL:
+Improve readability of calendar day cells by reducing clutter on phone screens while still showing useful previews.
+
+CHANGES TO MAKE:
+
+1. PHONE-SIZED SCREENS
+   On phone-sized screens:
+
+* Show a maximum of 2 visible items inside each calendar day cell
+* If there are more than 2 items on that date, show a final line that says "+X more"
+* The "+X more" line should reflect the remaining count correctly
+* Keep the day cell readable and uncluttered
+
+2. TABLET / LARGER SCREENS
+   On tablet-sized or larger screens:
+
+* Show up to 3 visible items inside each day cell
+* If there are more than 3 items on that date, show a final line that says "+X more"
+
+3. DAY CELL POLISH
+
+* Slightly improve spacing and padding inside day cells
+* Make sure date numbers and task preview rows do not feel cramped
+* Keep the current visual style and orange accent theme
+* Do not dramatically increase the size of the overall calendar
+* Preserve a clean month view
+
+4. "+ MORE" STYLING
+
+* Style the "+X more" row so it feels intentional and easy to notice
+* Keep it subtle and clean, not too bold or oversized
+* Make sure it truncates or aligns cleanly within the day cell
+
+5. RESPONSIVENESS
+
+* Use responsive logic so phone vs tablet layouts are handled cleanly
+* Ensure the calendar still looks good on both iPhone and Android
+* Ensure larger devices like tablets can take advantage of the extra space
+
+DO NOT DO THESE YET:
+
+* Do not add Notes into calendar cells yet unless already supported
+* Do not redesign the calendar structure
+* Do not change the date tap behavior
+* Do not change the DateDetails screen flow
+* Do not alter recurrence behavior
+* Do not change the bottom nav
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how many visible items now show on phones
+2. how many visible items now show on tablets
+3. how "+X more" is calculated
+4. what files were updated
+5. what I should manually test
