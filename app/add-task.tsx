@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Platform,
   ScrollView,
   KeyboardAvoidingView,
+  Switch,
+  Alert,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,11 +20,28 @@ import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoCont
 
 const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'biweekly', 'monthly', 'quarterly', '6months', 'yearly'];
 
+type Priority = 'none' | 'low' | 'medium' | 'high';
+
+const PRIORITY_OPTIONS: { key: Priority; label: string; color: string }[] = [
+  { key: 'none', label: 'None', color: '' },
+  { key: 'low', label: 'Low', color: '#2A9D8F' },
+  { key: 'medium', label: 'Medium', color: '#E8734A' },
+  { key: 'high', label: 'High', color: '#E63946' },
+];
+
 function formatDateLabel(dateStr: string): string {
   if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-').map(Number);
   const d = new Date(year, month - 1, day);
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function SectionLabel({ label, theme }: { label: string; theme: any }) {
+  return (
+    <Text style={[styles.sectionLabel, { color: theme.textTertiary, fontFamily: 'Inter_600SemiBold' }]}>
+      {label}
+    </Text>
+  );
 }
 
 export default function AddTaskScreen() {
@@ -35,10 +54,18 @@ export default function AddTaskScreen() {
   const [text, setText] = useState(params.title || '');
   const [recurrence, setRecurrence] = useState<RecurrenceType>((params.recurrence as RecurrenceType) || 'none');
   const [dueDate, setDueDate] = useState<string>(params.defaultDate || '');
-  const inputRef = useRef<TextInput>(null);
+
+  const [details, setDetails] = useState('');
+  const [subtasks, setSubtasks] = useState<string[]>([]);
+  const [newSubtask, setNewSubtask] = useState('');
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const [priority, setPriority] = useState<Priority>('none');
+
+  const titleRef = useRef<TextInput>(null);
+  const subtaskRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 300);
+    const timer = setTimeout(() => titleRef.current?.focus(), 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -58,8 +85,27 @@ export default function AddTaskScreen() {
     setDueDate('');
   };
 
+  const handleAddSubtask = useCallback(() => {
+    const trimmed = newSubtask.trim();
+    if (!trimmed) { setAddingSubtask(false); return; }
+    setSubtasks((prev) => [...prev, trimmed]);
+    setNewSubtask('');
+    setTimeout(() => subtaskRef.current?.focus(), 50);
+  }, [newSubtask]);
+
+  const handleRemoveSubtask = (index: number) => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setSubtasks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleComingSoon = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Alert.alert('Coming Soon', 'Sharing and collaboration will be available in a future update.');
+  };
+
   const bg = isDark ? '#1A1A1A' : '#FFFFFF';
-  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20);
+  const cardBg = isDark ? '#252525' : '#F8F7F4';
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
 
   return (
     <>
@@ -92,18 +138,13 @@ export default function AddTaskScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.inputWrapper}>
+
+          {/* ── TITLE ── */}
+          <SectionLabel label="TITLE" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
             <TextInput
-              ref={inputRef}
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.inputBg,
-                  color: theme.text,
-                  fontFamily: 'Inter_400Regular',
-                  borderColor: theme.border,
-                },
-              ]}
+              ref={titleRef}
+              style={[styles.titleInput, { color: theme.text, fontFamily: 'Inter_400Regular' }]}
               placeholder="What do you need to do?"
               placeholderTextColor={theme.textTertiary}
               value={text}
@@ -114,64 +155,240 @@ export default function AddTaskScreen() {
             />
           </View>
 
-          {dueDate ? (
-            <View style={styles.dateRow}>
-              <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40', borderWidth: 1 }]}>
-                <Ionicons name="calendar" size={14} color={theme.accent} />
-                <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
-                  {formatDateLabel(dueDate)}
-                </Text>
-                <Pressable onPress={handleClearDate} hitSlop={8}>
-                  <Ionicons name="close-circle" size={16} color={theme.accent} />
-                </Pressable>
+          {/* ── DATE ── */}
+          <SectionLabel label="DATE" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+            {dueDate ? (
+              <View style={styles.dateRow}>
+                <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40' }]}>
+                  <Ionicons name="calendar" size={14} color={theme.accent} />
+                  <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
+                    {formatDateLabel(dueDate)}
+                  </Text>
+                  <Pressable onPress={handleClearDate} hitSlop={8}>
+                    <Ionicons name="close-circle" size={16} color={theme.accent} />
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          ) : null}
+            ) : (
+              <Text style={[styles.emptyFieldText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                No due date set
+              </Text>
+            )}
+          </View>
 
-          <Text style={[styles.label, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-            Repeat
-          </Text>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recurrenceRow}
-            style={styles.recurrenceScroll}
-            keyboardShouldPersistTaps="handled"
-          >
-            {RECURRENCE_OPTIONS.map((opt) => {
-              const isActive = recurrence === opt;
-              return (
-                <Pressable
-                  key={opt}
-                  onPress={() => {
-                    if (Platform.OS !== 'web') Haptics.selectionAsync();
-                    setRecurrence(opt);
-                  }}
-                  style={[
-                    styles.recurrenceChip,
-                    {
-                      backgroundColor: isActive ? theme.accent : theme.inputBg,
-                      borderColor: isActive ? theme.accent : theme.border,
-                    },
-                  ]}
-                >
-                  <Text
+          {/* ── REPEAT ── */}
+          <SectionLabel label="REPEAT" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border, paddingHorizontal: 0 }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recurrenceRow}
+              keyboardShouldPersistTaps="handled"
+            >
+              {RECURRENCE_OPTIONS.map((opt) => {
+                const isActive = recurrence === opt;
+                return (
+                  <Pressable
+                    key={opt}
+                    onPress={() => {
+                      if (Platform.OS !== 'web') Haptics.selectionAsync();
+                      setRecurrence(opt);
+                    }}
                     style={[
-                      styles.recurrenceText,
+                      styles.recurrenceChip,
                       {
-                        color: isActive ? '#fff' : theme.textSecondary,
-                        fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                        backgroundColor: isActive ? theme.accent : theme.inputBg,
+                        borderColor: isActive ? theme.accent : theme.border,
                       },
                     ]}
                   >
-                    {RECURRENCE_LABELS[opt]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+                    <Text
+                      style={[
+                        styles.recurrenceText,
+                        {
+                          color: isActive ? '#fff' : theme.textSecondary,
+                          fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                        },
+                      ]}
+                    >
+                      {RECURRENCE_LABELS[opt]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
 
+          {/* ── DETAILS ── */}
+          <SectionLabel label="DETAILS" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+            <TextInput
+              style={[styles.detailsInput, { color: theme.text, fontFamily: 'Inter_400Regular' }]}
+              placeholder="Add details..."
+              placeholderTextColor={theme.textTertiary}
+              value={details}
+              onChangeText={setDetails}
+              multiline
+              maxLength={500}
+              textAlignVertical="top"
+            />
+          </View>
+
+          {/* ── SUBTASKS ── */}
+          <SectionLabel label="SUBTASKS" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+            {subtasks.map((sub, i) => (
+              <View key={i} style={[styles.subtaskRow, i < subtasks.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
+                <View style={[styles.subtaskDot, { backgroundColor: theme.accent }]} />
+                <Text style={[styles.subtaskText, { color: theme.text, fontFamily: 'Inter_400Regular' }]} numberOfLines={2}>
+                  {sub}
+                </Text>
+                <Pressable onPress={() => handleRemoveSubtask(i)} hitSlop={8}>
+                  <Ionicons name="close-circle-outline" size={18} color={theme.textTertiary} />
+                </Pressable>
+              </View>
+            ))}
+
+            {addingSubtask ? (
+              <View style={[styles.subtaskRow, subtasks.length > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
+                <View style={[styles.subtaskDot, { backgroundColor: theme.accent + '60' }]} />
+                <TextInput
+                  ref={subtaskRef}
+                  style={[styles.subtaskInput, { color: theme.text, fontFamily: 'Inter_400Regular' }]}
+                  placeholder="Subtask title..."
+                  placeholderTextColor={theme.textTertiary}
+                  value={newSubtask}
+                  onChangeText={setNewSubtask}
+                  returnKeyType="done"
+                  onSubmitEditing={handleAddSubtask}
+                  autoFocus
+                  blurOnSubmit={false}
+                  onBlur={() => {
+                    if (!newSubtask.trim()) setAddingSubtask(false);
+                    else handleAddSubtask();
+                  }}
+                />
+              </View>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [styles.addSubtaskBtn, { opacity: pressed ? 0.6 : 1 }]}
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync();
+                  setAddingSubtask(true);
+                }}
+              >
+                <Ionicons name="add-circle-outline" size={18} color={theme.accent} />
+                <Text style={[styles.addSubtaskText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+                  Add subtask
+                </Text>
+              </Pressable>
+            )}
+
+            {subtasks.length === 0 && !addingSubtask && (
+              <Text style={[styles.subtaskHint, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                Break this task into smaller steps
+              </Text>
+            )}
+          </View>
+
+          {/* ── OPTIONS ── */}
+          <SectionLabel label="OPTIONS" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+            <Text style={[styles.optionGroupLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+              Priority
+            </Text>
+            <View style={styles.priorityRow}>
+              {PRIORITY_OPTIONS.map(({ key, label, color }) => {
+                const isActive = priority === key;
+                const activeColor = key === 'none' ? theme.textSecondary : color;
+                return (
+                  <Pressable
+                    key={key}
+                    onPress={() => {
+                      if (Platform.OS !== 'web') Haptics.selectionAsync();
+                      setPriority(key);
+                    }}
+                    style={[
+                      styles.priorityChip,
+                      {
+                        backgroundColor: isActive
+                          ? (key === 'none' ? theme.inputBg : activeColor + '20')
+                          : theme.inputBg,
+                        borderColor: isActive ? activeColor : theme.border,
+                        borderWidth: isActive ? 1.5 : 1,
+                      },
+                    ]}
+                  >
+                    {key !== 'none' && (
+                      <View style={[styles.priorityDot, { backgroundColor: isActive ? activeColor : theme.textTertiary }]} />
+                    )}
+                    <Text
+                      style={[
+                        styles.priorityText,
+                        {
+                          color: isActive ? activeColor : theme.textSecondary,
+                          fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                        },
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={[styles.optionDivider, { backgroundColor: theme.border }]} />
+
+            <View style={[styles.optionRow, { opacity: 0.45 }]}>
+              <Ionicons name="notifications-outline" size={18} color={theme.textSecondary} />
+              <Text style={[styles.optionRowLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+                Reminder
+              </Text>
+              <Text style={[styles.optionComingSoon, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                Coming soon
+              </Text>
+            </View>
+          </View>
+
+          {/* ── SHARING ── */}
+          <SectionLabel label="SHARING" theme={theme} />
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+            <Pressable style={[styles.optionRow, { opacity: 0.45 }]} onPress={handleComingSoon}>
+              <Ionicons name="people-outline" size={18} color={theme.textSecondary} />
+              <Text style={[styles.optionRowLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+                Share this task
+              </Text>
+              <Switch
+                value={false}
+                disabled
+                trackColor={{ false: theme.border, true: theme.accent }}
+                thumbColor={Platform.OS === 'android' ? theme.surface : undefined}
+              />
+            </Pressable>
+
+            <View style={[styles.optionDivider, { backgroundColor: theme.border }]} />
+
+            <Pressable style={[styles.optionRow, { opacity: 0.45 }]} onPress={handleComingSoon}>
+              <Ionicons name="pencil-outline" size={18} color={theme.textSecondary} />
+              <Text style={[styles.optionRowLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+                Allow edits
+              </Text>
+              <Switch
+                value={false}
+                disabled
+                trackColor={{ false: theme.border, true: theme.accent }}
+                thumbColor={Platform.OS === 'android' ? theme.surface : undefined}
+              />
+            </Pressable>
+
+            <Text style={[styles.sharingHint, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+              Sharing and collaboration will be available in a future update.
+            </Text>
+          </View>
+
+          {/* ── SAVE ── */}
           <Pressable
             onPress={handleSave}
             disabled={!text.trim()}
@@ -181,7 +398,6 @@ export default function AddTaskScreen() {
                 backgroundColor: text.trim() ? theme.accent : theme.inputBg,
                 opacity: pressed ? 0.85 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
-                marginTop: 24,
               },
             ]}
           >
@@ -195,9 +411,10 @@ export default function AddTaskScreen() {
                 },
               ]}
             >
-              {isEditing ? 'Update' : 'Add Task'}
+              {isEditing ? 'Update Task' : 'Add Task'}
             </Text>
           </Pressable>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </>
@@ -218,23 +435,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  inputWrapper: {
-    marginBottom: 14,
-  },
-  input: {
-    fontSize: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingTop: 20,
+    gap: 0,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    letterSpacing: 1.1,
+    marginBottom: 7,
+    marginTop: 20,
+    paddingHorizontal: 2,
+  },
+  card: {
+    borderRadius: 14,
     borderWidth: 1,
-    minHeight: 52,
-    maxHeight: 120,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 0,
+  },
+  titleInput: {
+    fontSize: 16,
+    minHeight: 44,
+    maxHeight: 110,
+    lineHeight: 22,
+  },
+  emptyFieldText: {
+    fontSize: 14,
+    paddingVertical: 4,
+    fontStyle: 'italic',
   },
   dateRow: {
-    marginBottom: 14,
+    flexDirection: 'row',
   },
   datePill: {
     flexDirection: 'row',
@@ -244,44 +475,127 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
+    borderWidth: 1,
   },
   dateText: {
     fontSize: 13,
   },
-  label: {
-    fontSize: 13,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  recurrenceScroll: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
   recurrenceRow: {
     gap: 8,
-    paddingBottom: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   recurrenceChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    height: 40,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   recurrenceText: {
     fontSize: 13,
   },
+  detailsInput: {
+    fontSize: 14,
+    minHeight: 72,
+    lineHeight: 20,
+  },
+  subtaskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+  },
+  subtaskDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    flexShrink: 0,
+  },
+  subtaskText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  subtaskInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  addSubtaskBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+  },
+  addSubtaskText: {
+    fontSize: 14,
+  },
+  subtaskHint: {
+    fontSize: 12,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  optionGroupLabel: {
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  priorityRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  priorityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  priorityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  priorityText: {
+    fontSize: 13,
+  },
+  optionDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 10,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 2,
+  },
+  optionRowLabel: {
+    flex: 1,
+    fontSize: 14,
+  },
+  optionComingSoon: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  sharingHint: {
+    fontSize: 12,
+    marginTop: 12,
+    fontStyle: 'italic',
+    lineHeight: 17,
+  },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 15,
+    borderRadius: 14,
     gap: 8,
+    marginTop: 28,
   },
   saveText: {
     fontSize: 16,

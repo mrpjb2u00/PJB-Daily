@@ -1,0 +1,148 @@
+Upgrade the current Task Editor / New Task screen into a more structured, premium, future-ready editor. Build on top of the current working app. Do not redesign the entire app. Keep the current app branding, colors, navigation, and existing task logic intact.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep current task creation/editing logic working
+* Keep recurrence logic exactly as it is now
+* Do not break current add/edit flows
+* Do not change Supabase schema or backend sharing logic yet
+* This pass is primarily a UI/UX and structure upgrade
+
+GOALS OF THIS PASS:
+
+1. Make the Task Editor feel more polished and powerful
+2. Keep it simple and fast, not overly complicated
+3. Prepare the screen for future advanced features
+4. Add a disabled “Sharing” section as a future-facing UI element
+
+PART 1 — STRUCTURED TASK EDITOR LAYOUT
+
+Upgrade the Task Editor / New Task screen to use clearer grouped sections.
+
+Keep the existing title input, date handling, and repeat options, but organize the screen into sections like:
+
+* Title
+* Date
+* Repeat
+* Details
+* Subtasks
+* Options
+* Sharing
+
+Use clean spacing, section labels, and a modern mobile layout.
+Keep it lightweight and consistent with the current app style.
+
+PART 2 — DETAILS SECTION
+
+Add a lightweight optional details/notes section for a task.
+
+Requirements:
+
+* Add a simple multiline field such as:
+
+  * “Add details...”
+* Keep it optional
+* If task notes/details already exist in the data model, wire it safely
+* If not, structure the UI cleanly for future support without breaking current logic
+
+PART 3 — SUBTASKS SECTION
+
+Add a subtasks area to the Task Editor UI.
+
+Requirements:
+
+* Show a section labeled “Subtasks”
+* Add an action like “+ Add subtask”
+* Keep the UI clean and simple
+* If full subtask persistence is too large for this pass, build the UI structure in a safe future-ready way and clearly note what is visual-only vs functional
+* If it can be implemented safely without breaking current logic, do so cleanly
+
+IMPORTANT:
+
+* Do not over-engineer subtasks if they require major backend changes right now
+* Prioritize a clean editor experience and future-ready structure
+
+PART 4 — OPTIONS SECTION
+
+Add a simple “Options” section that can include:
+
+* Priority chips: Low / Medium / High
+* Optional reminder row or placeholder if appropriate
+
+Requirements:
+
+* Keep it visually clean
+* Do not add overly complex scheduling
+* If reminder functionality is not ready, label it clearly or keep it as a non-destructive placeholder
+
+PART 5 — SHARING SECTION (COMING SOON)
+
+Add a “Sharing” section to the Task Editor.
+
+This is for UI/future-readiness only right now.
+
+Include:
+
+* Toggle row: “Share this task”
+* Toggle row: “Allow edits”
+* Small helper text under the section such as:
+
+  * “Coming soon”
+  * or “Sharing and collaboration will be available in a future update”
+
+Behavior:
+
+* These controls should be disabled or clearly non-active for now
+* Tapping them may optionally show a subtle “Coming soon” message
+* Do NOT implement backend sharing yet
+* Do NOT change schema or permissions yet
+
+IMPORTANT:
+This section should feel intentional and premium, not broken.
+
+PART 6 — KEEP CURRENT CORE BEHAVIOR
+
+Preserve:
+
+* title input behavior
+* date prefill behavior
+* repeat selection behavior
+* add/save behavior
+* edit flow behavior
+* navigation behavior
+
+Do not remove current working functionality.
+
+PART 7 — VISUAL POLISH
+
+Make the editor feel less like a plain form and more like a modern task editor.
+
+Use:
+
+* grouped sections
+* subtle card styling where appropriate
+* clear typography hierarchy
+* polished spacing
+* mobile-friendly layout on both Android and iPhone
+
+Do not make it too dense or overwhelming.
+
+DO NOT DO THESE YET:
+
+* Do not implement full backend sharing
+* Do not change Supabase schema for sharing
+* Do not redesign the rest of the app
+* Do not alter recurrence logic
+* Do not break task creation or editing
+* Do not add heavy dependencies
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. what UI sections were added to the Task Editor
+2. which parts are fully functional vs future-ready placeholders
+3. how the Sharing section behaves right now
+4. whether any data model changes were made
+5. what files were updated
+6. what I should manually test next
