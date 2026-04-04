@@ -6,8 +6,8 @@ import {
   Pressable,
   StyleSheet,
   Platform,
-  Modal,
 } from 'react-native';
+import CreateModal from '@/components/CreateModal';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -461,88 +461,12 @@ export default function DateDetailsScreen() {
         )}
       </ScrollView>
 
-      <Modal
-        transparent
+      <CreateModal
         visible={addModal}
-        animationType="fade"
-        onRequestClose={() => setAddModal(false)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setAddModal(false)}>
-          <View
-            style={[styles.modalSheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
-
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-                Create New
-              </Text>
-              <Text style={[styles.modalSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-                What would you like to add?
-              </Text>
-            </View>
-
-            <View style={styles.modalCards}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.modalCard,
-                  {
-                    backgroundColor: theme.accent + '12',
-                    borderColor: theme.accent + '40',
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-                onPress={handleAddTodo}
-              >
-                <View style={[styles.modalCardIcon, { backgroundColor: theme.accent }]}>
-                  <Ionicons name="checkmark-circle" size={22} color="#fff" />
-                </View>
-                <View style={styles.modalCardText}>
-                  <Text style={[styles.modalCardTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-                    Create To-Do
-                  </Text>
-                  <Text style={[styles.modalCardDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-                    Track tasks and deadlines
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={theme.accent} />
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.modalCard,
-                  {
-                    backgroundColor: theme.accentSecondary + '12',
-                    borderColor: theme.accentSecondary + '40',
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-                onPress={handleAddNote}
-              >
-                <View style={[styles.modalCardIcon, { backgroundColor: theme.accentSecondary }]}>
-                  <Ionicons name="document-text" size={22} color="#fff" />
-                </View>
-                <View style={styles.modalCardText}>
-                  <Text style={[styles.modalCardTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-                    Create Note
-                  </Text>
-                  <Text style={[styles.modalCardDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-                    Capture thoughts and ideas
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={theme.accentSecondary} />
-              </Pressable>
-            </View>
-
-            <Pressable style={styles.modalCancelBtn} onPress={() => setAddModal(false)}>
-              <Text style={[styles.modalCancelText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
+        onClose={() => setAddModal(false)}
+        onCreateTodo={handleAddTodo}
+        onCreateNote={handleAddNote}
+      />
     </View>
   );
 }
@@ -632,77 +556,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   emptyBtnText: {
-    fontSize: 15,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 14,
-    paddingBottom: 28,
-  },
-  modalSheet: {
-    borderRadius: 26,
-    borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 20,
-    alignItems: 'stretch',
-  },
-  dragHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  modalHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 4,
-  },
-  modalTitle: {
-    fontSize: 22,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-  },
-  modalCards: {
-    gap: 12,
-    marginBottom: 16,
-  },
-  modalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
-    borderWidth: 1.5,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 14,
-  },
-  modalCardIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  modalCardText: {
-    flex: 1,
-    gap: 3,
-  },
-  modalCardTitle: {
-    fontSize: 16,
-  },
-  modalCardDesc: {
-    fontSize: 13,
-  },
-  modalCancelBtn: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  modalCancelText: {
     fontSize: 15,
   },
 });

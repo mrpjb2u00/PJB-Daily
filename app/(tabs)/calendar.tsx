@@ -6,9 +6,9 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
-  Modal,
   useWindowDimensions,
 } from 'react-native';
+import CreateModal from '@/components/CreateModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -273,67 +273,18 @@ export default function CalendarScreen() {
         </Animated.View>
       </ScrollView>
 
-      <Modal
-        transparent
+      <CreateModal
         visible={actionModal.visible}
-        animationType="fade"
-        onRequestClose={closeModal}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={closeModal}>
-          <View
-            style={[styles.modalSheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
-
-            <Text style={[styles.modalDateLabel, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-              {formatDateLabel(actionModal.date)}
-            </Text>
-            <Text style={[styles.modalSubtitle, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-              What would you like to add?
-            </Text>
-
-            <Pressable
-              style={({ pressed }) => [styles.modalBtn, { backgroundColor: theme.accent, opacity: pressed ? 0.85 : 1 }]}
-              onPress={() => {
-                closeModal();
-                router.push({ pathname: '/add-task', params: { defaultDate: actionModal.date } });
-              }}
-            >
-              <View style={styles.modalBtnIcon}>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              </View>
-              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
-                Create To-Do
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.modalBtn,
-                { backgroundColor: theme.accentSecondary, opacity: pressed ? 0.85 : 1 },
-              ]}
-              onPress={() => {
-                closeModal();
-                router.push({ pathname: '/edit-note', params: { prefillDate: actionModal.date } });
-              }}
-            >
-              <View style={styles.modalBtnIcon}>
-                <Ionicons name="document-text" size={20} color="#fff" />
-              </View>
-              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
-                Create Note
-              </Text>
-            </Pressable>
-
-            <Pressable style={styles.modalCancelBtn} onPress={closeModal}>
-              <Text style={[styles.modalCancelText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
+        onClose={closeModal}
+        onCreateTodo={() => {
+          closeModal();
+          router.push({ pathname: '/add-task', params: { defaultDate: actionModal.date } });
+        }}
+        onCreateNote={() => {
+          closeModal();
+          router.push({ pathname: '/edit-note', params: { prefillDate: actionModal.date } });
+        }}
+      />
     </View>
   );
 }
@@ -445,61 +396,5 @@ const styles = StyleSheet.create({
       android: { lineHeight: 10, marginTop: 0 },
       default: { lineHeight: 12, marginTop: 1 },
     }),
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 14,
-    paddingBottom: 28,
-  },
-  modalSheet: {
-    borderRadius: 24,
-    borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 18,
-    gap: 10,
-  },
-  dragHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 10,
-  },
-  modalDateLabel: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  modalBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    gap: 12,
-  },
-  modalBtnIcon: {
-    width: 24,
-    alignItems: 'center',
-  },
-  modalBtnText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  modalCancelBtn: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    marginTop: 2,
-  },
-  modalCancelText: {
-    fontSize: 15,
   },
 });
