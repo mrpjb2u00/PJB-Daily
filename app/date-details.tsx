@@ -473,36 +473,67 @@ export default function DateDetailsScreen() {
             onStartShouldSetResponder={() => true}
           >
             <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
-            <Text style={[styles.modalDay, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-              {formatDateShort(date)}
-            </Text>
-            <Text style={[styles.modalSubtitle, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-              What would you like to add?
-            </Text>
 
-            <Pressable
-              style={({ pressed }) => [styles.modalBtn, { backgroundColor: theme.accent, opacity: pressed ? 0.85 : 1 }]}
-              onPress={handleAddTodo}
-            >
-              <View style={styles.modalBtnIcon}>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              </View>
-              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
-                Create To-Do
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                Create New
               </Text>
-            </Pressable>
+              <Text style={[styles.modalSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                What would you like to add?
+              </Text>
+            </View>
 
-            <Pressable
-              style={({ pressed }) => [styles.modalBtn, { backgroundColor: theme.accentSecondary, opacity: pressed ? 0.85 : 1 }]}
-              onPress={handleAddNote}
-            >
-              <View style={styles.modalBtnIcon}>
-                <Ionicons name="document-text" size={20} color="#fff" />
-              </View>
-              <Text style={[styles.modalBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
-                Create Note
-              </Text>
-            </Pressable>
+            <View style={styles.modalCards}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalCard,
+                  {
+                    backgroundColor: theme.accent + '12',
+                    borderColor: theme.accent + '40',
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+                onPress={handleAddTodo}
+              >
+                <View style={[styles.modalCardIcon, { backgroundColor: theme.accent }]}>
+                  <Ionicons name="checkmark-circle" size={22} color="#fff" />
+                </View>
+                <View style={styles.modalCardText}>
+                  <Text style={[styles.modalCardTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                    Create To-Do
+                  </Text>
+                  <Text style={[styles.modalCardDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                    Track tasks and deadlines
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.accent} />
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalCard,
+                  {
+                    backgroundColor: theme.accentSecondary + '12',
+                    borderColor: theme.accentSecondary + '40',
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+                onPress={handleAddNote}
+              >
+                <View style={[styles.modalCardIcon, { backgroundColor: theme.accentSecondary }]}>
+                  <Ionicons name="document-text" size={22} color="#fff" />
+                </View>
+                <View style={styles.modalCardText}>
+                  <Text style={[styles.modalCardTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                    Create Note
+                  </Text>
+                  <Text style={[styles.modalCardDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                    Capture thoughts and ideas
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.accentSecondary} />
+              </Pressable>
+            </View>
 
             <Pressable style={styles.modalCancelBtn} onPress={() => setAddModal(false)}>
               <Text style={[styles.modalCancelText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
@@ -611,12 +642,11 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   modalSheet: {
-    borderRadius: 24,
+    borderRadius: 26,
     borderWidth: 1,
     paddingHorizontal: 18,
     paddingTop: 12,
-    paddingBottom: 18,
-    gap: 10,
+    paddingBottom: 20,
     alignItems: 'stretch',
   },
   dragHandle: {
@@ -624,38 +654,53 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
-  modalDay: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 2,
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 4,
+  },
+  modalTitle: {
+    fontSize: 22,
   },
   modalSubtitle: {
     fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 6,
   },
-  modalBtn: {
+  modalCards: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  modalCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    gap: 12,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 14,
   },
-  modalBtnIcon: {
-    width: 24,
+  modalCardIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 13,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
-  modalBtnText: {
-    fontSize: 16,
+  modalCardText: {
     flex: 1,
+    gap: 3,
+  },
+  modalCardTitle: {
+    fontSize: 16,
+  },
+  modalCardDesc: {
+    fontSize: 13,
   },
   modalCancelBtn: {
     alignItems: 'center',
     paddingVertical: 10,
-    marginTop: 2,
   },
   modalCancelText: {
     fontSize: 15,
