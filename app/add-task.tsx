@@ -22,11 +22,11 @@ const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'biweek
 
 type Priority = 'none' | 'low' | 'medium' | 'high';
 
-const PRIORITY_OPTIONS: { key: Priority; label: string; color: string }[] = [
-  { key: 'none', label: 'None', color: '' },
-  { key: 'low', label: 'Low', color: '#2A9D8F' },
-  { key: 'medium', label: 'Medium', color: '#E8734A' },
-  { key: 'high', label: 'High', color: '#E63946' },
+const PRIORITY_OPTIONS: { key: Priority; label: string; color: string; icon: string }[] = [
+  { key: 'none', label: 'None', color: '', icon: 'remove-outline' },
+  { key: 'low', label: 'Low', color: '#2A9D8F', icon: 'arrow-down-outline' },
+  { key: 'medium', label: 'Medium', color: '#E8734A', icon: 'remove-outline' },
+  { key: 'high', label: 'High', color: '#E63946', icon: 'arrow-up-outline' },
 ];
 
 function formatDateLabel(dateStr: string): string {
@@ -236,23 +236,49 @@ export default function AddTaskScreen() {
           </View>
 
           {/* ── SUBTASKS ── */}
-          <SectionLabel label="SUBTASKS" theme={theme} />
-          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
+          <View style={styles.subtaskSectionHeader}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary, fontFamily: 'Inter_600SemiBold', marginTop: 20, marginBottom: 7 }]}>
+              SUBTASKS
+            </Text>
+            {subtasks.length > 0 && (
+              <View style={[styles.subtaskCountBadge, { backgroundColor: theme.accent + '20' }]}>
+                <Text style={[styles.subtaskCountText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
+                  {subtasks.length}
+                </Text>
+              </View>
+            )}
+          </View>
+          <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border, paddingVertical: 4 }]}>
+            {subtasks.length === 0 && !addingSubtask && (
+              <View style={[styles.subtaskEmptyState, { borderColor: theme.border }]}>
+                <Ionicons name="list-outline" size={20} color={theme.textTertiary} />
+                <Text style={[styles.subtaskHint, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                  Break this task into smaller steps
+                </Text>
+              </View>
+            )}
+
             {subtasks.map((sub, i) => (
-              <View key={i} style={[styles.subtaskRow, i < subtasks.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
-                <View style={[styles.subtaskDot, { backgroundColor: theme.accent }]} />
+              <View
+                key={i}
+                style={[
+                  styles.subtaskRow,
+                  { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
+                ]}
+              >
+                <Ionicons name="checkmark-circle-outline" size={17} color={theme.accent} />
                 <Text style={[styles.subtaskText, { color: theme.text, fontFamily: 'Inter_400Regular' }]} numberOfLines={2}>
                   {sub}
                 </Text>
-                <Pressable onPress={() => handleRemoveSubtask(i)} hitSlop={8}>
-                  <Ionicons name="close-circle-outline" size={18} color={theme.textTertiary} />
+                <Pressable onPress={() => handleRemoveSubtask(i)} hitSlop={10}>
+                  <Ionicons name="close" size={16} color={theme.textTertiary} />
                 </Pressable>
               </View>
             ))}
 
             {addingSubtask ? (
-              <View style={[styles.subtaskRow, subtasks.length > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
-                <View style={[styles.subtaskDot, { backgroundColor: theme.accent + '60' }]} />
+              <View style={[styles.subtaskRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
+                <Ionicons name="checkmark-circle-outline" size={17} color={theme.accent + '60'} />
                 <TextInput
                   ref={subtaskRef}
                   style={[styles.subtaskInput, { color: theme.text, fontFamily: 'Inter_400Regular' }]}
@@ -270,26 +296,23 @@ export default function AddTaskScreen() {
                   }}
                 />
               </View>
-            ) : (
-              <Pressable
-                style={({ pressed }) => [styles.addSubtaskBtn, { opacity: pressed ? 0.6 : 1 }]}
-                onPress={() => {
-                  if (Platform.OS !== 'web') Haptics.selectionAsync();
-                  setAddingSubtask(true);
-                }}
-              >
-                <Ionicons name="add-circle-outline" size={18} color={theme.accent} />
-                <Text style={[styles.addSubtaskText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
-                  Add subtask
-                </Text>
-              </Pressable>
-            )}
+            ) : null}
 
-            {subtasks.length === 0 && !addingSubtask && (
-              <Text style={[styles.subtaskHint, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                Break this task into smaller steps
+            <Pressable
+              style={({ pressed }) => [
+                styles.addSubtaskBtn,
+                { backgroundColor: pressed ? theme.accent + '10' : 'transparent' },
+              ]}
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync();
+                setAddingSubtask(true);
+              }}
+            >
+              <Ionicons name="add" size={17} color={theme.accent} />
+              <Text style={[styles.addSubtaskText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+                Add subtask
               </Text>
-            )}
+            </Pressable>
           </View>
 
           {/* ── OPTIONS ── */}
@@ -299,9 +322,9 @@ export default function AddTaskScreen() {
               Priority
             </Text>
             <View style={styles.priorityRow}>
-              {PRIORITY_OPTIONS.map(({ key, label, color }) => {
+              {PRIORITY_OPTIONS.map(({ key, label, color, icon }) => {
                 const isActive = priority === key;
-                const activeColor = key === 'none' ? theme.textSecondary : color;
+                const chipColor = key === 'none' ? theme.textSecondary : color;
                 return (
                   <Pressable
                     key={key}
@@ -313,21 +336,23 @@ export default function AddTaskScreen() {
                       styles.priorityChip,
                       {
                         backgroundColor: isActive
-                          ? (key === 'none' ? theme.inputBg : activeColor + '20')
-                          : theme.inputBg,
-                        borderColor: isActive ? activeColor : theme.border,
+                          ? (key === 'none' ? theme.surfaceSecondary : chipColor + '22')
+                          : (key === 'none' ? theme.inputBg : chipColor + '0D'),
+                        borderColor: isActive ? chipColor : (key === 'none' ? theme.border : chipColor + '40'),
                         borderWidth: isActive ? 1.5 : 1,
                       },
                     ]}
                   >
-                    {key !== 'none' && (
-                      <View style={[styles.priorityDot, { backgroundColor: isActive ? activeColor : theme.textTertiary }]} />
-                    )}
+                    <Ionicons
+                      name={icon as any}
+                      size={13}
+                      color={isActive ? chipColor : (key === 'none' ? theme.textTertiary : chipColor + 'AA')}
+                    />
                     <Text
                       style={[
                         styles.priorityText,
                         {
-                          color: isActive ? activeColor : theme.textSecondary,
+                          color: isActive ? chipColor : (key === 'none' ? theme.textSecondary : chipColor + 'CC'),
                           fontFamily: isActive ? 'Inter_600SemiBold' : 'Inter_500Medium',
                         },
                       ]}
@@ -395,18 +420,20 @@ export default function AddTaskScreen() {
             style={({ pressed }) => [
               styles.saveButton,
               {
-                backgroundColor: text.trim() ? theme.accent : theme.inputBg,
+                backgroundColor: text.trim() ? theme.accent : theme.accent + '22',
+                borderWidth: text.trim() ? 0 : 1.5,
+                borderColor: theme.accent + '55',
                 opacity: pressed ? 0.85 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               },
             ]}
           >
-            <Ionicons name="checkmark" size={22} color={text.trim() ? '#fff' : theme.textTertiary} />
+            <Ionicons name="checkmark" size={22} color={text.trim() ? '#fff' : theme.accent + 'AA'} />
             <Text
               style={[
                 styles.saveText,
                 {
-                  color: text.trim() ? '#fff' : theme.textTertiary,
+                  color: text.trim() ? '#fff' : theme.accent + 'AA',
                   fontFamily: 'Inter_600SemiBold',
                 },
               ]}
@@ -503,17 +530,33 @@ const styles = StyleSheet.create({
     minHeight: 72,
     lineHeight: 20,
   },
+  subtaskSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  subtaskCountBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+    marginTop: 14,
+  },
+  subtaskCountText: {
+    fontSize: 11,
+  },
+  subtaskEmptyState: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 2,
+  },
   subtaskRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 10,
-  },
-  subtaskDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    flexShrink: 0,
   },
   subtaskText: {
     flex: 1,
@@ -529,14 +572,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+    borderRadius: 8,
   },
   addSubtaskText: {
     fontSize: 14,
   },
   subtaskHint: {
     fontSize: 12,
-    marginTop: 4,
     fontStyle: 'italic',
   },
   optionGroupLabel: {
@@ -555,11 +599,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
-  },
-  priorityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
   },
   priorityText: {
     fontSize: 13,

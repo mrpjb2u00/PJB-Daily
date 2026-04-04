@@ -1,0 +1,84 @@
+Make a focused refinement pass on the current Task Editor / New Task screen. Build on top of the current upgraded version. Do not redesign the whole app. Keep the current structure, section layout, and existing functionality intact.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep all current task creation/editing behavior working
+* Keep recurrence logic unchanged
+* Keep the current grouped sections and sharing placeholder
+* Do not add backend sharing yet
+* Do not break mobile layout
+
+GOALS OF THIS PASS:
+
+1. Improve the disabled Add Task button so it feels more intentional
+2. Add better visual distinction to the priority chips
+3. Prepare the Subtasks section to feel more ready for real use later
+4. Keep everything polished and lightweight
+
+PART 1 — ADD TASK BUTTON POLISH
+
+Right now the disabled Add Task button looks too dull.
+
+Update it so:
+
+* it still clearly looks disabled when the task title is empty
+* but it has a more intentional visual style
+* use a light coral/orange-tinted disabled state instead of a flat washed-out gray if it fits the current design
+* keep enabled state clear and stronger
+* do not change the actual validation logic
+
+PART 2 — PRIORITY CHIP VISUAL IMPROVEMENT
+
+Improve the Priority chips so each option is easier to scan visually.
+
+Requirements:
+
+* Keep the current chips and selection behavior
+* Add subtle color hints to each option
+* Suggested direction:
+
+  * None = neutral
+  * Low = soft green accent
+  * Medium = soft amber/yellow accent
+  * High = coral/red accent
+* Keep it tasteful and clean, not loud
+* Make sure selected state is still clear
+* Ensure it looks good in both light and dark mode
+
+PART 3 — SUBTASKS SECTION POLISH
+
+Keep the current Subtasks section lightweight, but make it feel more future-ready.
+
+Requirements:
+
+* Preserve the current “Add subtask” entry point
+* Improve the visual hierarchy slightly so this section feels more intentional
+* If easy and safe, add a tiny helper line or empty-state treatment that suggests subtasks will appear here
+* Do not implement full subtask backend persistence unless it is already safe and simple
+* Do not overbuild this part
+
+PART 4 — GENERAL POLISH
+
+* Keep spacing and alignment clean
+* Preserve the current modern grouped layout
+* Make sure Android and iPhone both still render correctly
+* Do not make the screen feel overcrowded
+
+DO NOT DO THESE YET:
+
+* Do not implement full backend sharing
+* Do not add invite flows
+* Do not redesign the whole screen again
+* Do not change recurrence behavior
+* Do not add heavy dependencies
+* Do not break the current add/edit flows
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how the Add Task button disabled state was improved
+2. how the priority chips were visually updated
+3. what changed in the Subtasks section
+4. what files were updated
+5. what I should manually test next
