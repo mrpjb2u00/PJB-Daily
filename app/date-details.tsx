@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
@@ -45,6 +46,143 @@ function getNotesForDate(notes: Note[], dateStr: string): Note[] {
   return notes.filter((note) => note.date === dateStr);
 }
 
+const RING_SIZE = 88;
+const RING_RADIUS = 32;
+const RING_STROKE = 7;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+function ProgressCard({
+  total,
+  completed,
+  theme,
+}: {
+  total: number;
+  completed: number;
+  theme: any;
+}) {
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const strokeDashoffset = RING_CIRCUMFERENCE * (1 - percent / 100);
+
+  return (
+    <View
+      style={[
+        progressStyles.card,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          shadowColor: theme.shadow,
+        },
+      ]}
+    >
+      <View style={progressStyles.ringWrap}>
+        <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={theme.border}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+          {percent > 0 && (
+            <Circle
+              cx={RING_SIZE / 2}
+              cy={RING_SIZE / 2}
+              r={RING_RADIUS}
+              stroke={theme.accent}
+              strokeWidth={RING_STROKE}
+              fill="none"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              rotation="-90"
+              origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
+            />
+          )}
+        </Svg>
+        <View style={progressStyles.ringCenter}>
+          <Text style={[progressStyles.ringPercent, { color: theme.accent, fontFamily: 'Inter_700Bold' }]}>
+            {percent}%
+          </Text>
+        </View>
+      </View>
+
+      <View style={progressStyles.info}>
+        <Text style={[progressStyles.cardTitle, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
+          DAILY PROGRESS
+        </Text>
+        {total === 0 ? (
+          <Text style={[progressStyles.statusText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+            No tasks yet
+          </Text>
+        ) : (
+          <>
+            <Text style={[progressStyles.mainText, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+              {percent}% Completed
+            </Text>
+            <Text style={[progressStyles.subText, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+              {completed} of {total} to-do{total !== 1 ? 's' : ''} done
+            </Text>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const progressStyles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  ringWrap: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringCenter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringPercent: {
+    fontSize: 17,
+    lineHeight: 20,
+  },
+  info: {
+    flex: 1,
+    gap: 3,
+  },
+  cardTitle: {
+    fontSize: 10,
+    letterSpacing: 1.1,
+    marginBottom: 2,
+  },
+  mainText: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  subText: {
+    fontSize: 13,
+  },
+  statusText: {
+    fontSize: 15,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+});
+
 function SectionHeader({
   label,
   color,
@@ -57,10 +195,7 @@ function SectionHeader({
   return (
     <View style={sectionHeaderStyles.row}>
       <View style={[sectionHeaderStyles.dot, { backgroundColor: color }]} />
-      <Text style={[sectionHeaderStyles.label, { color }]}>{label}</Text>
-      <View style={[sectionHeaderStyles.badge, { backgroundColor: color + '20' }]}>
-        <Text style={[sectionHeaderStyles.badgeText, { color }]}>{count}</Text>
-      </View>
+      <Text style={[sectionHeaderStyles.label, { color }]}>{label} ({count})</Text>
     </View>
   );
 }
@@ -70,7 +205,7 @@ const sectionHeaderStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    marginBottom: 10,
+    marginBottom: 12,
     marginTop: 4,
   },
   dot: {
@@ -83,15 +218,6 @@ const sectionHeaderStyles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.9,
     textTransform: 'uppercase',
-  },
-  badge: {
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
   },
 });
 
@@ -114,6 +240,11 @@ export default function DateDetailsScreen() {
   const dateNotes = useMemo(
     () => (date ? getNotesForDate(notes, date) : []),
     [notes, date],
+  );
+
+  const completedCount = useMemo(
+    () => tasks.filter((t) => t.completed).length,
+    [tasks],
   );
 
   const isEmpty = tasks.length === 0 && dateNotes.length === 0;
@@ -266,8 +397,16 @@ export default function DateDetailsScreen() {
           </Animated.View>
         ) : (
           <>
+            <Animated.View entering={FadeInDown.duration(260).delay(0)}>
+              <ProgressCard
+                total={tasks.length}
+                completed={completedCount}
+                theme={theme}
+              />
+            </Animated.View>
+
             {tasks.length > 0 && (
-              <Animated.View entering={FadeInDown.duration(280).delay(0)}>
+              <Animated.View entering={FadeInDown.duration(280).delay(40)}>
                 <SectionHeader
                   label="To-Dos"
                   color={theme.accent}
@@ -276,7 +415,8 @@ export default function DateDetailsScreen() {
                 {tasks.map((item, i) => (
                   <Animated.View
                     key={item.id}
-                    entering={FadeInDown.duration(240).delay(i * 35)}
+                    entering={FadeInDown.duration(240).delay(60 + i * 35)}
+                    style={styles.itemSpacing}
                   >
                     <TodoItem
                       item={item}
@@ -291,7 +431,7 @@ export default function DateDetailsScreen() {
 
             {dateNotes.length > 0 && (
               <Animated.View
-                entering={FadeInDown.duration(280).delay(tasks.length > 0 ? 80 : 0)}
+                entering={FadeInDown.duration(280).delay(tasks.length > 0 ? 100 : 40)}
                 style={tasks.length > 0 ? styles.sectionGap : undefined}
               >
                 <SectionHeader
@@ -303,6 +443,7 @@ export default function DateDetailsScreen() {
                   <Animated.View
                     key={note.id}
                     entering={FadeInDown.duration(240).delay(i * 35)}
+                    style={styles.itemSpacing}
                   >
                     <NoteCard
                       item={note}
@@ -413,10 +554,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 18,
+    paddingTop: 20,
+  },
+  itemSpacing: {
+    marginBottom: 6,
   },
   sectionGap: {
-    marginTop: 8,
+    marginTop: 12,
   },
   emptyState: {
     alignItems: 'center',
