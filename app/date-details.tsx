@@ -397,13 +397,15 @@ export default function DateDetailsScreen() {
           </Animated.View>
         ) : (
           <>
-            <Animated.View entering={FadeInDown.duration(260).delay(0)}>
-              <ProgressCard
-                total={tasks.length}
-                completed={completedCount}
-                theme={theme}
-              />
-            </Animated.View>
+            {tasks.length > 0 && (
+              <Animated.View entering={FadeInDown.duration(260).delay(0)}>
+                <ProgressCard
+                  total={tasks.length}
+                  completed={completedCount}
+                  theme={theme}
+                />
+              </Animated.View>
+            )}
 
             {tasks.length > 0 && (
               <Animated.View entering={FadeInDown.duration(280).delay(40)}>
