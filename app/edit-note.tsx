@@ -28,6 +28,12 @@ function formatDateLabel(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function wordCount(text: string): number {
+  const trimmed = text.trim();
+  if (!trimmed) return 0;
+  return trimmed.split(/\s+/).length;
+}
+
 export default function EditNoteScreen() {
   const { theme, isDark } = useTheme();
   const { notes, addNote, updateNote, noteDateSupported } = useNotes();
@@ -45,18 +51,17 @@ export default function EditNoteScreen() {
   const [draftRestored, setDraftRestored] = useState(false);
 
   const titleRef = useRef<TextInput>(null);
+  const contentRef = useRef<TextInput>(null);
   const draftRef = useRef({ title, content, date });
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedRef = useRef(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
-  // Keep draftRef in sync with latest values
   useEffect(() => {
     draftRef.current = { title, content, date };
   }, [title, content, date]);
 
-  // Load draft on mount for new notes only
   useEffect(() => {
     if (isEditing) return;
     AsyncStorage.getItem(DRAFT_KEY).then((raw) => {
@@ -74,13 +79,11 @@ export default function EditNoteScreen() {
     });
   }, []);
 
-  // Focus title after mount
   useEffect(() => {
     const timer = setTimeout(() => titleRef.current?.focus(), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  // Debounced autosave on field changes (new notes only)
   useEffect(() => {
     if (isEditing) return;
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
@@ -92,7 +95,6 @@ export default function EditNoteScreen() {
     };
   }, [title, content, date, isEditing]);
 
-  // Save draft when app goes to background (new notes only)
   useEffect(() => {
     if (isEditing) return;
     const sub = AppState.addEventListener('change', (state) => {
@@ -103,7 +105,6 @@ export default function EditNoteScreen() {
     return () => sub.remove();
   }, [isEditing]);
 
-  // Save draft on unmount if not saved (new notes only)
   useEffect(() => {
     return () => {
       if (!isEditing && !savedRef.current) {
@@ -117,7 +118,6 @@ export default function EditNoteScreen() {
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     savedRef.current = true;
     if (!isEditing) AsyncStorage.removeItem(DRAFT_KEY);
-
     if (isEditing && params.id) {
       updateNote(params.id, title, content, date || undefined);
     } else {
@@ -133,51 +133,55 @@ export default function EditNoteScreen() {
 
   const hasContent = title.trim() || content.trim();
   const noteColor = theme.accentSecondary;
+  const words = wordCount(content);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
+      {/* ── Header ── */}
       <View
         style={[
           styles.header,
-          {
-            paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 8,
-            borderBottomColor: theme.border,
-          },
+          { paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 10 },
         ]}
       >
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={8}
-          style={styles.headerBtn}
-        >
-          <Ionicons name="close" size={24} color={theme.textSecondary} />
+        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.headerBtn}>
+          <Ionicons name="close" size={22} color={theme.textSecondary} />
         </Pressable>
 
-        <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+        <Text style={[styles.headerTitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
           {isEditing ? 'Edit Note' : 'New Note'}
         </Text>
 
         <Pressable
           onPress={handleSave}
           disabled={!hasContent}
-          hitSlop={8}
-          style={[styles.headerBtn, { opacity: hasContent ? 1 : 0.4 }]}
+          hitSlop={12}
+          style={styles.headerBtn}
         >
-          <Ionicons name="checkmark" size={24} color={noteColor} />
+          <Text
+            style={[
+              styles.doneBtn,
+              { color: hasContent ? noteColor : theme.textTertiary, fontFamily: 'Inter_600SemiBold' },
+            ]}
+          >
+            Done
+          </Text>
         </Pressable>
       </View>
 
+      {/* ── Draft restored banner ── */}
       {draftRestored && (
-        <View style={[styles.draftBanner, { backgroundColor: noteColor + '18', borderBottomColor: noteColor + '30' }]}>
-          <Ionicons name="document-text-outline" size={14} color={noteColor} />
+        <View style={[styles.draftBanner, { backgroundColor: noteColor + '15', borderBottomColor: noteColor + '25' }]}>
+          <Ionicons name="document-text-outline" size={13} color={noteColor} />
           <Text style={[styles.draftBannerText, { color: noteColor, fontFamily: 'Inter_500Medium' }]}>
             Draft restored
           </Text>
         </View>
       )}
 
+      {/* ── Keyboard-aware scrollable editor ── */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -185,65 +189,60 @@ export default function EditNoteScreen() {
       >
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[styles.body, { paddingBottom: Math.max(insets.bottom, 24) + 32 }]}
+          contentContainerStyle={[styles.body, { paddingBottom: Math.max(insets.bottom, 24) + 40 }]}
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
         >
+          {/* Title */}
           <TextInput
             ref={titleRef}
-            style={[
-              styles.titleInput,
-              { color: theme.text, fontFamily: 'Inter_700Bold' },
-            ]}
+            style={[styles.titleInput, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
             placeholder="Title"
             placeholderTextColor={theme.textTertiary}
             value={title}
             onChangeText={setTitle}
             maxLength={100}
             returnKeyType="next"
+            onSubmitEditing={() => contentRef.current?.focus()}
+            blurOnSubmit={false}
           />
 
+          {/* Date metadata row */}
           {noteDateSupported && (
-            <View style={styles.dateRow}>
+            <View style={styles.metaRow}>
               {date ? (
-                <View
-                  style={[
-                    styles.datePill,
-                    {
-                      backgroundColor: noteColor + '18',
-                      borderColor: noteColor + '40',
-                      borderWidth: 1,
-                    },
-                  ]}
+                <Pressable
+                  style={[styles.metaChip, { backgroundColor: noteColor + '15', borderColor: noteColor + '35' }]}
+                  onPress={handleClearDate}
+                  hitSlop={6}
                 >
-                  <Ionicons name="calendar" size={14} color={noteColor} />
-                  <Text
-                    style={[styles.dateText, { color: noteColor, fontFamily: 'Inter_600SemiBold' }]}
-                  >
+                  <Ionicons name="calendar-outline" size={13} color={noteColor} />
+                  <Text style={[styles.metaChipText, { color: noteColor, fontFamily: 'Inter_600SemiBold' }]}>
                     {formatDateLabel(date)}
                   </Text>
-                  <Pressable onPress={handleClearDate} hitSlop={8}>
-                    <Ionicons name="close-circle" size={16} color={noteColor} />
-                  </Pressable>
-                </View>
+                  <Ionicons name="close-circle" size={14} color={noteColor + 'CC'} />
+                </Pressable>
               ) : (
-                <Text
-                  style={[styles.datePlaceholder, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}
-                >
-                  No date — note won't appear on calendar
-                </Text>
+                <View style={[styles.metaChip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Ionicons name="calendar-outline" size={13} color={theme.textTertiary} />
+                  <Text style={[styles.metaChipText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                    No date
+                  </Text>
+                </View>
               )}
             </View>
           )}
 
+          {/* Divider between meta and content */}
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          {/* Content */}
           <TextInput
-            style={[
-              styles.contentInput,
-              { color: theme.text, fontFamily: 'Inter_400Regular' },
-            ]}
-            placeholder="Start writing..."
+            ref={contentRef}
+            style={[styles.contentInput, { color: theme.text, fontFamily: 'Inter_400Regular' }]}
+            placeholder="Start writing…"
             placeholderTextColor={theme.textTertiary}
             value={content}
             onChangeText={setContent}
@@ -251,6 +250,15 @@ export default function EditNoteScreen() {
             textAlignVertical="top"
             scrollEnabled={false}
           />
+
+          {/* Live word count */}
+          {words > 0 && (
+            <View style={styles.wordCountRow}>
+              <Text style={[styles.wordCount, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                {words} {words === 1 ? 'word' : 'words'}
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -261,68 +269,99 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+
+  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    paddingBottom: 14,
   },
   headerBtn: {
-    width: 40,
-    height: 40,
+    minWidth: 56,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 15,
+    letterSpacing: 0.1,
   },
+  doneBtn: {
+    fontSize: 16,
+    textAlign: 'right',
+  },
+
+  /* Draft banner */
   draftBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 7,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   draftBannerText: {
-    fontSize: 13,
+    fontSize: 12,
   },
+
+  /* Body / scroll content */
   body: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: 22,
+    paddingTop: 22,
   },
+
+  /* Title */
   titleInput: {
-    fontSize: 24,
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  dateRow: {
+    fontSize: 28,
+    lineHeight: 36,
     marginBottom: 14,
-    minHeight: 32,
-    justifyContent: 'center',
+    paddingVertical: 0,
   },
-  datePill: {
+
+  /* Metadata row */
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 18,
+  },
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  dateText: {
-    fontSize: 13,
+  metaChipText: {
+    fontSize: 12,
   },
-  datePlaceholder: {
-    fontSize: 13,
-    fontStyle: 'italic',
+
+  /* Divider */
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginBottom: 20,
   },
+
+  /* Content */
   contentInput: {
     minHeight: 300,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 27,
+  },
+
+  /* Word count */
+  wordCountRow: {
+    marginTop: 20,
+    alignItems: 'flex-start',
+  },
+  wordCount: {
+    fontSize: 12,
+    letterSpacing: 0.2,
   },
 });
