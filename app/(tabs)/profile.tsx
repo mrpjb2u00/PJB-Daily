@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,10 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
+  const topPad = Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24);
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
+
+  const initial = user?.username?.charAt(0).toUpperCase() || '?';
 
   const handleThemeToggle = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -36,140 +41,133 @@ export default function ProfileScreen() {
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: (Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24)) + 12,
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
-        <View>
-          <Text style={[styles.greeting, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
-            Your account
-          </Text>
-          <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-            Profile
-          </Text>
-        </View>
-      </View>
-
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: 32 }]}
+        contentContainerStyle={[styles.content, { paddingTop: topPad + 8, paddingBottom: bottomPad }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.avatarRow}>
+
+        {/* ── PROFILE HEADER CARD ── */}
+        <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
+            colors={[theme.gradientStart + '22', theme.gradientEnd + '10']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.avatarCircle}
+            style={styles.profileCardGradient}
           >
-            <Text style={[styles.avatarInitial, { fontFamily: 'Inter_700Bold' }]}>
-              {user?.username?.charAt(0).toUpperCase() || '?'}
+            <LinearGradient
+              colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.avatarCircle}
+            >
+              <Text style={[styles.avatarInitial, { fontFamily: 'Inter_700Bold' }]}>
+                {initial}
+              </Text>
+            </LinearGradient>
+
+            <Text style={[styles.profileName, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+              {user?.username || 'User'}
+            </Text>
+            <Text style={[styles.profileEmail, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+              {user?.email || ''}
             </Text>
           </LinearGradient>
-          <View style={styles.avatarInfo}>
-            <Text style={[styles.avatarName, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-              {user?.username}
-            </Text>
-            <Text style={[styles.avatarEmail, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-              {user?.email}
-            </Text>
-          </View>
         </View>
 
-        <Text style={[styles.sectionLabel, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-          Preferences
-        </Text>
-
+        {/* ── PREFERENCES ── */}
+        <SectionLabel label="Preferences" theme={theme} />
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Pressable
             onPress={handleThemeToggle}
-            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.8 : 1 }]}
           >
-            <View style={[styles.rowIcon, { backgroundColor: theme.surfaceSecondary }]}>
+            <View style={[styles.iconWrap, { backgroundColor: isDark ? '#3A2A00' : '#FFF4E6' }]}>
               <Ionicons
-                name={isDark ? 'sunny' : 'moon'}
+                name={isDark ? 'moon' : 'sunny-outline'}
                 size={18}
-                color={isDark ? theme.gradientEnd : theme.gradientStart}
+                color={isDark ? '#F4C68A' : '#E8734A'}
               />
             </View>
             <Text style={[styles.rowLabel, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
-              {isDark ? 'Dark Mode' : 'Light Mode'}
+              Dark Mode
             </Text>
-            <View style={[styles.themeIndicator, { backgroundColor: theme.accent + '20', borderColor: theme.accent + '40', borderWidth: 1 }]}>
-              <Text style={[styles.themeIndicatorText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
-                {isDark ? 'ON' : 'OFF'}
-              </Text>
-            </View>
+            <Switch
+              value={isDark}
+              onValueChange={handleThemeToggle}
+              trackColor={{ false: theme.border, true: theme.accent + 'CC' }}
+              thumbColor={Platform.OS === 'android' ? (isDark ? theme.accent : theme.surface) : undefined}
+            />
           </Pressable>
         </View>
 
-        <Text style={[styles.sectionLabel, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-          Account
-        </Text>
-
+        {/* ── ACCOUNT ── */}
+        <SectionLabel label="Account" theme={theme} />
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.row, styles.rowStatic]}>
-            <View style={[styles.rowIcon, { backgroundColor: theme.surfaceSecondary }]}>
+          <View style={styles.row}>
+            <View style={[styles.iconWrap, { backgroundColor: theme.accent + '15' }]}>
               <Ionicons name="person-outline" size={18} color={theme.accent} />
             </View>
-            <View style={styles.rowTextGroup}>
+            <View style={styles.rowTextStack}>
               <Text style={[styles.rowMeta, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
                 Username
               </Text>
-              <Text style={[styles.rowLabel, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
-                {user?.username}
+              <Text style={[styles.rowValue, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
+                {user?.username || '—'}
               </Text>
             </View>
           </View>
 
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <View style={[styles.separator, { backgroundColor: theme.border, marginLeft: 60 }]} />
 
-          <View style={[styles.row, styles.rowStatic]}>
-            <View style={[styles.rowIcon, { backgroundColor: theme.surfaceSecondary }]}>
+          <View style={styles.row}>
+            <View style={[styles.iconWrap, { backgroundColor: theme.accent + '15' }]}>
               <Ionicons name="mail-outline" size={18} color={theme.accent} />
             </View>
-            <View style={styles.rowTextGroup}>
+            <View style={styles.rowTextStack}>
               <Text style={[styles.rowMeta, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
                 Email
               </Text>
-              <Text style={[styles.rowLabel, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
-                {user?.email}
+              <Text style={[styles.rowValue, { color: theme.text, fontFamily: 'Inter_500Medium' }]} numberOfLines={1}>
+                {user?.email || '—'}
               </Text>
             </View>
           </View>
         </View>
 
-        <Text style={[styles.sectionLabel, { color: theme.textSecondary, fontFamily: 'Inter_600SemiBold' }]}>
-          Session
+        {/* ── SESSION ── */}
+        <SectionLabel label="Session" theme={theme} />
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.destructive + '35' }]}>
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+            testID="profile-logout-button"
+            accessibilityRole="button"
+            accessibilityLabel="Sign Out"
+          >
+            <View style={[styles.iconWrap, { backgroundColor: theme.destructive + '15' }]}>
+              <Ionicons name="log-out-outline" size={18} color={theme.destructive} />
+            </View>
+            <Text style={[styles.rowLabel, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
+              Sign Out
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={theme.destructive + '80'} />
+          </Pressable>
+        </View>
+
+        <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+          To-Dos & Notes · PJBStudios
         </Text>
 
-        <Pressable
-          onPress={handleLogout}
-          style={({ pressed }) => [
-            styles.logoutBtn,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.destructive + '50',
-              opacity: pressed ? 0.75 : 1,
-            },
-          ]}
-          testID="profile-logout-button"
-          accessibilityRole="button"
-          accessibilityLabel="Sign Out"
-        >
-          <View style={[styles.rowIcon, { backgroundColor: theme.destructive + '15' }]}>
-            <Ionicons name="log-out-outline" size={18} color={theme.destructive} />
-          </View>
-          <Text style={[styles.logoutText, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
-            Sign Out
-          </Text>
-        </Pressable>
       </ScrollView>
     </View>
+  );
+}
+
+function SectionLabel({ label, theme }: { label: string; theme: any }) {
+  return (
+    <Text style={[styles.sectionLabel, { color: theme.textTertiary, fontFamily: 'Inter_600SemiBold' }]}>
+      {label.toUpperCase()}
+    </Text>
   );
 }
 
@@ -177,116 +175,99 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-  },
-  greeting: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  headerTitle: {
-    fontSize: 28,
-  },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: 16,
   },
-  avatarRow: {
-    flexDirection: 'row',
+
+  /* Profile card */
+  profileCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 28,
+  },
+  profileCardGradient: {
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 32,
+    paddingTop: 32,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+    gap: 6,
   },
   avatarCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 8,
   },
   avatarInitial: {
-    fontSize: 28,
+    fontSize: 34,
     color: '#fff',
   },
-  avatarInfo: {
-    flex: 1,
-    gap: 4,
+  profileName: {
+    fontSize: 22,
+    lineHeight: 28,
   },
-  avatarName: {
-    fontSize: 20,
-  },
-  avatarEmail: {
+  profileEmail: {
     fontSize: 14,
+    lineHeight: 18,
   },
+
+  /* Section label */
   sectionLabel: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-    marginTop: 4,
+    fontSize: 11,
+    letterSpacing: 1.1,
+    marginBottom: 8,
+    marginLeft: 2,
   },
+
+  /* Card */
   card: {
     borderRadius: 14,
     borderWidth: 1,
     marginBottom: 24,
     overflow: 'hidden',
   },
+
+  /* Row */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
     gap: 12,
   },
-  rowStatic: {
-    gap: 12,
-  },
-  rowIcon: {
-    width: 36,
-    height: 36,
+  iconWrap: {
+    width: 34,
+    height: 34,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  rowTextGroup: {
+  rowLabel: {
+    flex: 1,
+    fontSize: 15,
+  },
+  rowTextStack: {
     flex: 1,
     gap: 2,
   },
   rowMeta: {
     fontSize: 11,
   },
-  rowLabel: {
+  rowValue: {
     fontSize: 15,
-    flex: 1,
   },
-  themeIndicator: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  separator: {
+    height: StyleSheet.hairlineWidth,
   },
-  themeIndicatorText: {
-    fontSize: 11,
-  },
-  divider: {
-    height: 1,
-    marginLeft: 64,
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  logoutText: {
-    fontSize: 15,
+
+  /* Footer */
+  footerText: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

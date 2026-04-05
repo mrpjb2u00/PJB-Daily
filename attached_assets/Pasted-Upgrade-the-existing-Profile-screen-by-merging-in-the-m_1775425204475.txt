@@ -1,0 +1,102 @@
+Upgrade the existing Profile screen by merging in the most useful ideas from a modern settings/profile layout, while keeping the app simple and fully functional. Build on top of the current working app. Do not create a separate Settings screen yet.
+
+IMPORTANT:
+
+* Build on top of the current working version
+* Keep current navigation intact
+* Keep current logout behavior intact
+* Keep current dark mode functionality intact
+* Do not redesign the whole app
+* Do not add fake data or non-functional premium features
+
+GOALS OF THIS PASS:
+
+1. Make the Profile screen look more polished and intentional
+2. Merge essential settings-style items into the Profile screen
+3. Keep only real, useful sections
+4. Make it look good in both light and dark mode
+
+PROFILE SCREEN STRUCTURE:
+
+PART 1 — HEADER
+Create a stronger profile header area that includes:
+
+* avatar or initial-based avatar block
+* username
+* email
+* clean spacing and hierarchy
+* styling consistent with the app
+
+Use real user/account data already available in the app if possible.
+
+PART 2 — PREFERENCES SECTION
+Add a “Preferences” section containing:
+
+* Dark Mode row/toggle
+
+Requirements:
+
+* Keep it connected to the current working dark mode behavior
+* Do not create fake toggles
+* Make this row look polished and settings-like
+
+PART 3 — ACCOUNT SECTION
+Add an “Account” section containing:
+
+* Username row
+* Email row
+
+Requirements:
+
+* Show current values clearly
+* Use a clean grouped card/list style
+* If inline editing is not already supported, keep this display-only for now
+* Do not add broken edit actions
+
+PART 4 — SESSION SECTION
+Add a “Session” section containing:
+
+* Sign Out button/row
+
+Requirements:
+
+* Preserve the existing sign out functionality exactly
+* Make it prominent but clean
+* Keep it visually consistent with the rest of the screen
+
+PART 5 — VISUAL STYLE
+Use a polished grouped layout:
+
+* section labels (Preferences, Account, Session)
+* rounded cards or grouped list blocks
+* modern spacing and typography
+* good dark mode support
+* consistent accent color usage
+
+PART 6 — KEEP IT REAL
+Do NOT add these yet unless already fully functional:
+
+* premium badges
+* activity charts
+* push notification controls
+* sync/backups
+* app lock
+* fake settings rows
+* fake edit profile buttons
+
+DO NOT DO THESE YET:
+
+* Do not create a separate Settings screen
+* Do not change app routing
+* Do not change logout logic
+* Do not break dark mode
+* Do not add fake analytics/stats
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. what changed in the Profile screen
+2. which real user data is being shown
+3. how dark mode is handled from this screen
+4. what files were updated
+5. what I should manually test next
