@@ -80,5 +80,5 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flock -n /tmp/metro_8081.lock npm run expo:dev"
+args = "npm run expo:dev"
 waitForPort = 8081
