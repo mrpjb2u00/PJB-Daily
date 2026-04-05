@@ -10,13 +10,17 @@ import {
   KeyboardAvoidingView,
   Switch,
   Alert,
+  AppState,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
+
+const DRAFT_KEY = 'draft:task:new';
 
 const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'biweekly', 'monthly', 'quarterly', '6months', 'yearly'];
 
@@ -54,24 +58,95 @@ export default function AddTaskScreen() {
   const [text, setText] = useState(params.title || '');
   const [recurrence, setRecurrence] = useState<RecurrenceType>((params.recurrence as RecurrenceType) || 'none');
   const [dueDate, setDueDate] = useState<string>(params.defaultDate || '');
-
   const [details, setDetails] = useState('');
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [newSubtask, setNewSubtask] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [priority, setPriority] = useState<Priority>('none');
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const titleRef = useRef<TextInput>(null);
   const subtaskRef = useRef<TextInput>(null);
+  const savedRef = useRef(false);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftRef = useRef({ text, recurrence, dueDate, details, subtasks, priority });
 
+  const bg = isDark ? '#1A1A1A' : '#FFFFFF';
+  const cardBg = isDark ? '#252525' : '#F8F7F4';
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
+
+  // Keep draftRef in sync
+  useEffect(() => {
+    draftRef.current = { text, recurrence, dueDate, details, subtasks, priority };
+  }, [text, recurrence, dueDate, details, subtasks, priority]);
+
+  // Load draft on mount for new tasks only
+  useEffect(() => {
+    if (isEditing) return;
+    AsyncStorage.getItem(DRAFT_KEY).then((raw) => {
+      if (!raw) return;
+      try {
+        const draft = JSON.parse(raw);
+        const hasDraftContent = draft.text || draft.details || (draft.subtasks && draft.subtasks.length > 0);
+        if (!hasDraftContent) return;
+        setText(draft.text || '');
+        setRecurrence(draft.recurrence || 'none');
+        // Keep param-supplied date if provided; otherwise restore draft's date
+        if (!params.defaultDate) {
+          setDueDate(draft.dueDate || '');
+        }
+        setDetails(draft.details || '');
+        setSubtasks(draft.subtasks || []);
+        setPriority(draft.priority || 'none');
+        setDraftRestored(true);
+        setTimeout(() => setDraftRestored(false), 3000);
+      } catch {}
+    });
+  }, []);
+
+  // Focus title after mount
   useEffect(() => {
     const timer = setTimeout(() => titleRef.current?.focus(), 300);
     return () => clearTimeout(timer);
   }, []);
 
+  // Debounced autosave on field changes (new tasks only)
+  useEffect(() => {
+    if (isEditing) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+    }, 1500);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [text, recurrence, dueDate, details, subtasks, priority, isEditing]);
+
+  // Save draft when app goes to background (new tasks only)
+  useEffect(() => {
+    if (isEditing) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+      }
+    });
+    return () => sub.remove();
+  }, [isEditing]);
+
+  // Save draft on unmount if not saved (new tasks only)
+  useEffect(() => {
+    return () => {
+      if (!isEditing && !savedRef.current) {
+        AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+      }
+    };
+  }, [isEditing]);
+
   const handleSave = () => {
     if (!text.trim()) return;
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    savedRef.current = true;
+    if (!isEditing) AsyncStorage.removeItem(DRAFT_KEY);
     if (isEditing && params.id) {
       updateTodo(params.id, text, recurrence, dueDate || undefined);
     } else {
@@ -103,10 +178,6 @@ export default function AddTaskScreen() {
     Alert.alert('Coming Soon', 'Sharing and collaboration will be available in a future update.');
   };
 
-  const bg = isDark ? '#1A1A1A' : '#FFFFFF';
-  const cardBg = isDark ? '#252525' : '#F8F7F4';
-  const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
-
   return (
     <>
       <Stack.Screen
@@ -132,6 +203,15 @@ export default function AddTaskScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
+        {draftRestored && (
+          <View style={[styles.draftBanner, { backgroundColor: theme.accent + '15', borderBottomColor: theme.accent + '30' }]}>
+            <Ionicons name="document-text-outline" size={14} color={theme.accent} />
+            <Text style={[styles.draftBannerText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
+              Draft restored
+            </Text>
+          </View>
+        )}
+
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
@@ -457,6 +537,17 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 16,
+  },
+  draftBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  draftBannerText: {
+    fontSize: 13,
   },
   scroll: {
     flex: 1,

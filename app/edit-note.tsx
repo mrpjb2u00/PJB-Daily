@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,18 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
+  AppState,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotes } from '@/contexts/NotesContext';
+
+const DRAFT_KEY = 'draft:note:new';
 
 function formatDateLabel(dateStr: string): string {
   if (!dateStr) return '';
@@ -37,18 +41,81 @@ export default function EditNoteScreen() {
   const [date, setDate] = useState<string>(
     existingNote?.date || params.prefillDate || '',
   );
+  const [draftRestored, setDraftRestored] = useState(false);
+
   const titleRef = useRef<TextInput>(null);
+  const draftRef = useRef({ title, content, date });
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedRef = useRef(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
+  // Keep draftRef in sync with latest values
+  useEffect(() => {
+    draftRef.current = { title, content, date };
+  }, [title, content, date]);
+
+  // Load draft on mount for new notes only
+  useEffect(() => {
+    if (isEditing) return;
+    AsyncStorage.getItem(DRAFT_KEY).then((raw) => {
+      if (!raw) return;
+      try {
+        const draft = JSON.parse(raw);
+        if (draft.title || draft.content) {
+          setTitle(draft.title || '');
+          setContent(draft.content || '');
+          setDate(draft.date || params.prefillDate || '');
+          setDraftRestored(true);
+          setTimeout(() => setDraftRestored(false), 3000);
+        }
+      } catch {}
+    });
+  }, []);
+
+  // Focus title after mount
   useEffect(() => {
     const timer = setTimeout(() => titleRef.current?.focus(), 300);
     return () => clearTimeout(timer);
   }, []);
 
+  // Debounced autosave on field changes (new notes only)
+  useEffect(() => {
+    if (isEditing) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+    }, 1500);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [title, content, date, isEditing]);
+
+  // Save draft when app goes to background (new notes only)
+  useEffect(() => {
+    if (isEditing) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+      }
+    });
+    return () => sub.remove();
+  }, [isEditing]);
+
+  // Save draft on unmount if not saved (new notes only)
+  useEffect(() => {
+    return () => {
+      if (!isEditing && !savedRef.current) {
+        AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draftRef.current));
+      }
+    };
+  }, [isEditing]);
+
   const handleSave = () => {
     if (!title.trim() && !content.trim()) return;
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    savedRef.current = true;
+    if (!isEditing) AsyncStorage.removeItem(DRAFT_KEY);
 
     if (isEditing && params.id) {
       updateNote(params.id, title, content, date || undefined);
@@ -100,6 +167,15 @@ export default function EditNoteScreen() {
           <Ionicons name="checkmark" size={24} color={noteColor} />
         </Pressable>
       </View>
+
+      {draftRestored && (
+        <View style={[styles.draftBanner, { backgroundColor: noteColor + '18', borderBottomColor: noteColor + '30' }]}>
+          <Ionicons name="document-text-outline" size={14} color={noteColor} />
+          <Text style={[styles.draftBannerText, { color: noteColor, fontFamily: 'Inter_500Medium' }]}>
+            Draft restored
+          </Text>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -192,6 +268,17 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
+  },
+  draftBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  draftBannerText: {
+    fontSize: 13,
   },
   body: {
     flex: 1,

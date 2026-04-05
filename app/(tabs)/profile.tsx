@@ -15,17 +15,23 @@ import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTodos } from '@/contexts/TodoContext';
+import { useNotes } from '@/contexts/NotesContext';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { todos } = useTodos();
+  const { notes } = useNotes();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const topPad = Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24);
   const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
 
   const initial = user?.username?.charAt(0).toUpperCase() || '?';
+  const openTodoCount = todos.filter((t) => !t.completed).length;
+  const noteCount = notes.length;
 
   const handleThemeToggle = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
@@ -72,6 +78,26 @@ export default function ProfileScreen() {
               {user?.email || ''}
             </Text>
           </LinearGradient>
+        </View>
+
+        {/* ── STATS ROW ── */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.statNumber, { color: theme.accent, fontFamily: 'Inter_700Bold' }]}>
+              {openTodoCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
+              Open To-Dos
+            </Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.statNumber, { color: theme.accentSecondary, fontFamily: 'Inter_700Bold' }]}>
+              {noteCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
+              Notes
+            </Text>
+          </View>
         </View>
 
         {/* ── PREFERENCES ── */}
@@ -184,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 28,
+    marginBottom: 12,
   },
   profileCardGradient: {
     alignItems: 'center',
@@ -212,6 +238,30 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     lineHeight: 18,
+  },
+
+  /* Stats row */
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    gap: 4,
+  },
+  statNumber: {
+    fontSize: 30,
+    lineHeight: 34,
+  },
+  statLabel: {
+    fontSize: 11,
+    textAlign: 'center',
   },
 
   /* Section label */
