@@ -1,0 +1,82 @@
+Make a focused reliability pass on the current app. Build on top of the current working version. Do not redesign the whole app.
+
+IMPORTANT:
+
+* Keep all current navigation and functionality intact
+* Do not break task creation/editing
+* Do not break note creation/editing
+* This pass is only about draft autosave protection for Notes and the Task Editor
+
+GOALS OF THIS PASS:
+
+1. Add draft autosave protection for the Note Editor
+2. Add draft autosave protection for the Task Editor / New Task screen
+3. Prevent users from losing unsaved writing if they get interrupted or leave the app
+
+PART 1 — DRAFT AUTOSAVE FOR NOTES
+
+Add draft autosave protection for the Note Editor.
+
+Requirements:
+
+* While the user is typing a new or edited note, autosave the draft after a short pause in typing (around 1–2 seconds of inactivity)
+* Also save draft state if the app goes to background or the user navigates away
+* When the user returns to the note editor, restore the unsaved draft if one exists
+* Make this safe and non-destructive
+* Do not create duplicate notes
+* If the user explicitly saves/submits the note, clear the draft state properly
+* If the user explicitly discards/cancels and confirms they want to discard, clear the draft
+
+PART 2 — DRAFT AUTOSAVE FOR TASK EDITOR
+
+Add draft autosave protection for the Task Editor / New Task screen.
+
+Requirements:
+
+* Preserve unsaved input for:
+
+  * title
+  * details
+  * date
+  * repeat
+  * priority
+  * subtasks draft state if currently present in the UI
+* Autosave after a short pause in typing or changes
+* Also save when the app backgrounds or the user navigates away
+* Restore unfinished task draft when the user returns
+* Do not automatically create a real task until the user explicitly presses Add/Save
+* Clear the draft after successful Add/Save
+* If the user explicitly discards/cancels and confirms they want to discard, clear the draft
+
+PART 3 — UX SAFETY
+
+* Keep autosave lightweight and reliable
+* Avoid lag or excessive writes
+* Do not change the existing save/add behavior
+* If helpful, show a subtle “Draft restored” message when reopening a saved draft, but keep it minimal
+* If no draft exists, behavior should feel unchanged
+
+PART 4 — DRAFT SCOPE / SAFETY
+
+* Make sure note drafts and task drafts are stored separately
+* Make sure editing an existing note/task does not overwrite another unrelated draft
+* Handle both new-item drafts and edit drafts safely
+* Avoid restoring stale data into the wrong screen
+
+DO NOT DO THESE YET:
+
+* Do not redesign the Note Editor visually
+* Do not redesign the Task Editor again
+* Do not add backend sync for drafts
+* Do not add notifications
+* Do not add fake status indicators
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. how Note draft autosave works
+2. how Task draft autosave works
+3. when drafts are restored
+4. when drafts are cleared
+5. what files were updated
+6. what I should manually test next
