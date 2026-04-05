@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
+  ScrollView,
   AppState,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -182,7 +183,14 @@ export default function EditNoteScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        <View style={styles.body}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[styles.body, { paddingBottom: Math.max(insets.bottom, 24) + 32 }]}
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        >
           <TextInput
             ref={titleRef}
             style={[
@@ -194,6 +202,7 @@ export default function EditNoteScreen() {
             value={title}
             onChangeText={setTitle}
             maxLength={100}
+            returnKeyType="next"
           />
 
           {noteDateSupported && (
@@ -240,9 +249,9 @@ export default function EditNoteScreen() {
             onChangeText={setContent}
             multiline
             textAlignVertical="top"
-            scrollEnabled
+            scrollEnabled={false}
           />
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );

@@ -1,0 +1,57 @@
+Make a focused keyboard usability fix for the Note Editor. Build on top of the current working app. Do not redesign the Note Editor. Do not change autosave behavior.
+
+CURRENT ISSUE:
+On iPhone, when editing a long note, the keyboard blocks the lower part of the content. It becomes hard or impossible to reach the bottom of the note while typing.
+
+GOALS:
+
+1. Make the Note Editor work properly with the keyboard on iPhone
+2. Keep the cursor/active typing area visible while editing long notes
+3. Make it easier to dismiss the keyboard on iPhone
+4. Preserve current autosave behavior and current note editing behavior
+
+REQUIREMENTS:
+
+1. KEYBOARD AVOIDANCE
+
+* Ensure the Note Editor properly avoids the keyboard on iPhone
+* The content area should resize or shift appropriately when the keyboard is open
+* The user must be able to continue editing long notes near the bottom without the keyboard covering the text
+
+2. SCROLLABLE EDITOR
+
+* Make sure the note editor content can scroll correctly while typing
+* If the note is longer than the visible area, the user should be able to scroll through it smoothly
+* Keep the current note content and editing logic intact
+
+3. KEEP CURSOR VISIBLE
+
+* When the user types near the bottom of a long note, keep the active line/cursor visible above the keyboard
+* Do not let the cursor disappear behind the keyboard
+
+4. EASY KEYBOARD DISMISS
+
+* Add a clean iPhone-friendly way to dismiss the keyboard if possible
+* Good options include:
+
+  * tap outside to dismiss
+  * drag/scroll to dismiss if supported
+  * a small keyboard dismiss accessory if appropriate
+* Keep it simple and native-feeling
+
+5. DO NOT CHANGE:
+
+* autosave logic
+* note save behavior
+* note data model
+* app navigation
+* visual design beyond what is needed for keyboard usability
+
+WHEN FINISHED:
+Summarize exactly:
+
+1. what changed for keyboard handling
+2. how long-note scrolling now works
+3. how the keyboard can be dismissed on iPhone
+4. what files were updated
+5. what I should manually test next
