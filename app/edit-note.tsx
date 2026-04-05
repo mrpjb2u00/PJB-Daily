@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   body: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 16,
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   contentInput: {
-    flex: 1,
+    minHeight: 300,
     fontSize: 16,
     lineHeight: 24,
   },
