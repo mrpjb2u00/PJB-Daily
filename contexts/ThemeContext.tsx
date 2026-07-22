@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/colors';
@@ -30,18 +30,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const next = mode === 'light' ? 'dark' : 'light';
     setMode(next);
     AsyncStorage.setItem(THEME_KEY, next);
-  };
+  }, [mode]);
 
   const value = useMemo(() => ({
     isDark: mode === 'dark',
     theme: mode === 'dark' ? Colors.dark : Colors.light,
     toggleTheme,
     mode,
-  }), [mode]);
+  }), [mode, toggleTheme]);
 
   if (!loaded) return null;
 
