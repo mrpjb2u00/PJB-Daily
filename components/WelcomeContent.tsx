@@ -99,7 +99,7 @@ export default function WelcomeContent() {
         <Text
           style={[styles.subtitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
         >
-          {''}
+          Plan • Organize • Accomplish
         </Text>
 
         <View style={styles.featureList}>

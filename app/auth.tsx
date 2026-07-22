@@ -171,7 +171,7 @@ export default function AuthScreen() {
             PJB Daily
           </Text>
           <Text style={[styles.appSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-            {''}
+            Plan • Organize • Accomplish
           </Text>
 
           <View style={styles.form}>
