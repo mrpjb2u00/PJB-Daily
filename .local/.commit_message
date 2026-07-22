@@ -1,0 +1,13 @@
+Remove unused expo-image-picker to eliminate camera/photo permissions
+
+expo-image-picker was installed but never imported or used anywhere in
+the codebase. Expo's prebuild system (legacyExpoPlugins in
+@expo/prebuild-config) auto-applies its config plugin during EAS Build
+even without an explicit plugins entry, which would have declared
+NSCameraUsageDescription, NSPhotoLibraryUsageDescription on iOS and
+READ_EXTERNAL_STORAGE / WRITE_EXTERNAL_STORAGE on Android.
+
+- Uninstalled: expo-image-picker
+- app.json: no camera/microphone permissions were declared (already clean)
+- No code changes needed (zero imports existed)
+- CAMERA and RECORD_AUDIO are not declared anywhere
