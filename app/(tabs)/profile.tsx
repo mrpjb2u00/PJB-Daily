@@ -181,7 +181,7 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-          To-Dos & Notes · PJBStudios
+          PJB Daily
         </Text>
 
       </ScrollView>

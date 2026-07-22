@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   </style>
 </head>
 <body>
-  <h2>To-Dos &amp; Notes</h2>
+  <h2>PJB Daily</h2>
   <p>Scan with your Camera app, or tap the button below on your phone.</p>
   <img src="${qrDataUrl}" width="300" height="300" alt="Expo QR Code"/>
   <br/>

@@ -94,12 +94,12 @@ export default function WelcomeContent() {
         <Text
           style={[styles.title, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
         >
-          To-Dos & Notes
+          PJB Daily
         </Text>
         <Text
           style={[styles.subtitle, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
         >
-          by PJBStudios
+          {''}
         </Text>
 
         <View style={styles.featureList}>

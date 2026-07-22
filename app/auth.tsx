@@ -168,10 +168,10 @@ export default function AuthScreen() {
           </LinearGradient>
 
           <Text style={[styles.appTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-            To-Dos & Notes
+            PJB Daily
           </Text>
           <Text style={[styles.appSubtitle, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-            by PJBStudios
+            {''}
           </Text>
 
           <View style={styles.form}>
