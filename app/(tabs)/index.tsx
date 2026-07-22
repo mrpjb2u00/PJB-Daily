@@ -18,7 +18,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTodos, Todo, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
+import { useTodos, Todo, RecurrenceType } from '@/contexts/TodoContext';
 import TodoItem from '@/components/TodoItem';
 
 type FilterOption = 'all' | RecurrenceType;

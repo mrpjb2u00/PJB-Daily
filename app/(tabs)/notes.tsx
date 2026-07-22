@@ -15,7 +15,6 @@ import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNotes, Note } from '@/contexts/NotesContext';
 
 function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void; onDelete: () => void }) {
@@ -77,7 +76,6 @@ function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void
 export default function NotesScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user } = useAuth();
   const { notes, deleteNote, isLoading } = useNotes();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;

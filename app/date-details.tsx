@@ -18,7 +18,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
-import { Note } from '@/contexts/NotesContext';
+import type { Note } from '@/contexts/NotesContext';
 import { getTasksForDate } from '@/utils/recurrence';
 import TodoItem from '@/components/TodoItem';
 import NoteCard from '@/components/NoteCard';

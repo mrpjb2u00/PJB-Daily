@@ -2,7 +2,6 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
-import { Platform } from "react-native";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { CustomTabBar } from "@/components/CustomTabBar";

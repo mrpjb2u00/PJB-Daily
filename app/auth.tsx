@@ -343,7 +343,7 @@ export default function AuthScreen() {
                 Reset Password
               </Text>
               <Text style={[styles.sheetDesc, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
-                Enter your email and we'll send you a reset link.
+                Enter your email and we&apos;ll send you a reset link.
               </Text>
 
               <TextInput
