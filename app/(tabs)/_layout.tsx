@@ -1,6 +1,7 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,19 +12,19 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="calendar">
-        <Icon sf={{ default: "calendar", selected: "calendar.fill" }} md="calendar-today" />
+        <Icon sf={{ default: "calendar", selected: "calendar.circle.fill" }} androidSrc={<VectorIcon family={MaterialIcons} name="calendar-today" />} />
         <Label>Calendar</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "checklist", selected: "checklist" }} md="check-box" />
+        <Icon sf={{ default: "checklist", selected: "checklist" }} androidSrc={<VectorIcon family={MaterialIcons} name="check-box" />} />
         <Label>To-Dos</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="notes">
-        <Icon sf={{ default: "note.text", selected: "note.text" }} md="note" />
+        <Icon sf={{ default: "note.text", selected: "note.text" }} androidSrc={<VectorIcon family={MaterialIcons} name="note" />} />
         <Label>Notes</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person", selected: "person.fill" }} md="account-circle" />
+        <Icon sf={{ default: "person", selected: "person.fill" }} androidSrc={<VectorIcon family={MaterialIcons} name="account-circle" />} />
         <Label>Profile</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
