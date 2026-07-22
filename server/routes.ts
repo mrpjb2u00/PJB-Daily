@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   <div class="url">${expoUrl}</div>
 </body>
 </html>`);
-    } catch (e) {
+    } catch {
       res.status(500).send("Failed to generate QR code");
     }
   });

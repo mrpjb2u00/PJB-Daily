@@ -141,7 +141,7 @@ export interface CalendarItem {
 
 export function getItemsMapForMonth(
   todos: Todo[],
-  notes: Array<{ id: string; title: string; date?: string }>,
+  notes: { id: string; title: string; date?: string }[],
   year: number,
   month: number,
 ): Map<string, CalendarItem[]> {
