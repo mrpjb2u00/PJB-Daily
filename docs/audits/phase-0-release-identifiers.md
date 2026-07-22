@@ -6,6 +6,8 @@ Audit date: 2026-07-22
 
 This document records release-critical identifiers from the Phase 0 audit and from the production references provided by the project owner. It does not include secret values. These identifiers must be re-verified before any release, build, rebranding, or store submission work.
 
+Phase 1 rebrand note: The visible product name changed to PJB Daily after Phase 0. The identifiers below document the Phase 0 production baseline and must remain unchanged unless a separately approved migration occurs.
+
 ## Protected Production Identifiers
 
 | Identifier | Current value | Source | Preservation status |

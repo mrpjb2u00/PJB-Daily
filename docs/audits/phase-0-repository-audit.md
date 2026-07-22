@@ -6,6 +6,8 @@ Audit date: 2026-07-22
 
 PJB Daily is an Expo React Native productivity app by PJBStudios. The codebase is still branded as "To-Dos & Notes by PJBStudios" and centers on a calendar-driven workflow with authentication, to-dos, notes, recurrence, autosave, dark mode, profile, and daily planning surfaces.
 
+Phase 1 rebrand note: The visible product name is now PJB Daily. This audit preserves the Phase 0 observation that the codebase was still branded as "To-Dos & Notes by PJBStudios" at the time.
+
 ## Technology Stack
 
 - Expo SDK 54 / React Native 0.81.5 / React 19.1.0.

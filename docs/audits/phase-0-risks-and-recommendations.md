@@ -2,6 +2,8 @@
 
 Audit date: 2026-07-22
 
+Phase 1 rebrand note: The visible product name changed to PJB Daily after these Phase 0 findings. Technical identifiers containing the former naming scheme remain protected for release continuity.
+
 ## Critical
 
 No Critical findings were identified from local inspection. This does not certify Supabase RLS, production credentials, store configuration, or EAS remote state because those were not queried in Phase 0.

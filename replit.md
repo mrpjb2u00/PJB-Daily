@@ -2,7 +2,9 @@
 
 ## Overview
 
-"To-Dos & Notes by PJBStudios" is a cross-platform productivity app built with Expo (React Native) that allows users to manage to-do items and notes. It features Supabase-based user authentication, dark/light theme support, recurring tasks, and a clean modern UI. The app runs on iOS, Android, and web via Expo, with an Express backend server for API support and static file serving.
+PJB Daily is a cross-platform productivity app built with Expo (React Native) that allows users to manage to-do items and notes. It features Supabase-based user authentication, dark/light theme support, recurring tasks, and a clean modern UI. The app runs on iOS, Android, and web via Expo, with an Express backend server for API support and static file serving.
+
+The app was originally developed as "To-Dos & Notes by PJBStudios." Protected production identifiers may still use the former naming scheme for release continuity and must not be changed without an approved migration plan.
 
 ## User Preferences
 
