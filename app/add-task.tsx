@@ -70,6 +70,8 @@ export default function AddTaskScreen() {
   const savedRef = useRef(false);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftRef = useRef({ text, recurrence, dueDate, details, subtasks, priority });
+  const initialIsEditingRef = useRef(isEditing);
+  const initialDefaultDateRef = useRef(params.defaultDate);
 
   const bg = isDark ? '#1A1A1A' : '#FFFFFF';
   const cardBg = isDark ? '#252525' : '#F8F7F4';
@@ -82,7 +84,7 @@ export default function AddTaskScreen() {
 
   // Load draft on mount for new tasks only
   useEffect(() => {
-    if (isEditing) return;
+    if (initialIsEditingRef.current) return;
     AsyncStorage.getItem(DRAFT_KEY).then((raw) => {
       if (!raw) return;
       try {
@@ -92,7 +94,7 @@ export default function AddTaskScreen() {
         setText(draft.text || '');
         setRecurrence(draft.recurrence || 'none');
         // Keep param-supplied date if provided; otherwise restore draft's date
-        if (!params.defaultDate) {
+        if (!initialDefaultDateRef.current) {
           setDueDate(draft.dueDate || '');
         }
         setDetails(draft.details || '');

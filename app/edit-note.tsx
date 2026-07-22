@@ -55,6 +55,8 @@ export default function EditNoteScreen() {
   const draftRef = useRef({ title, content, date });
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedRef = useRef(false);
+  const initialIsEditingRef = useRef(isEditing);
+  const initialPrefillDateRef = useRef(params.prefillDate);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
@@ -63,7 +65,7 @@ export default function EditNoteScreen() {
   }, [title, content, date]);
 
   useEffect(() => {
-    if (isEditing) return;
+    if (initialIsEditingRef.current) return;
     AsyncStorage.getItem(DRAFT_KEY).then((raw) => {
       if (!raw) return;
       try {
@@ -71,7 +73,7 @@ export default function EditNoteScreen() {
         if (draft.title || draft.content) {
           setTitle(draft.title || '');
           setContent(draft.content || '');
-          setDate(draft.date || params.prefillDate || '');
+          setDate(draft.date || initialPrefillDateRef.current || '');
           setDraftRestored(true);
           setTimeout(() => setDraftRestored(false), 3000);
         }
