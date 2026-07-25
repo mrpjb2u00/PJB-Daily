@@ -9,6 +9,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { getLocalTodayDateString } from '@/utils/date';
 
 export const TAB_BAR_HEIGHT = 60;
 
@@ -34,7 +35,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     } else if (activeRouteName === 'calendar') {
       router.push({ pathname: '/add-task', params: { defaultDate: selectedDate } });
     } else {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalTodayDateString();
       router.push({ pathname: '/add-task', params: { defaultDate: today } });
     }
   };

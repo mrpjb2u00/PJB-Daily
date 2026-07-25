@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
+import { addCalendarMonths } from '@/utils/date';
 
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | '6months' | 'yearly';
 
@@ -43,10 +44,10 @@ function getNextDueDate(recurrence: RecurrenceType, fromDate: number): number {
     case 'daily': d.setDate(d.getDate() + 1); break;
     case 'weekly': d.setDate(d.getDate() + 7); break;
     case 'biweekly': d.setDate(d.getDate() + 14); break;
-    case 'monthly': d.setMonth(d.getMonth() + 1); break;
-    case 'quarterly': d.setMonth(d.getMonth() + 3); break;
-    case '6months': d.setMonth(d.getMonth() + 6); break;
-    case 'yearly': d.setFullYear(d.getFullYear() + 1); break;
+    case 'monthly': return addCalendarMonths(d, 1).getTime();
+    case 'quarterly': return addCalendarMonths(d, 3).getTime();
+    case '6months': return addCalendarMonths(d, 6).getTime();
+    case 'yearly': return addCalendarMonths(d, 12).getTime();
     default: return 0;
   }
   return d.getTime();

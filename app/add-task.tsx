@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
+import { formatCalendarDateLabel } from '@/utils/date';
 
 const DRAFT_KEY = 'draft:task:new';
 
@@ -34,10 +35,7 @@ const PRIORITY_OPTIONS: { key: Priority; label: string; color: string; icon: str
 ];
 
 function formatDateLabel(dateStr: string): string {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return formatCalendarDateLabel(dateStr, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function SectionLabel({ label, theme }: { label: string; theme: any }) {

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { getLocalTodayDateString } from '@/utils/date';
 
 interface CalendarContextValue {
   selectedDate: string;
@@ -9,7 +10,7 @@ const CalendarContext = createContext<CalendarContextValue | null>(null);
 
 export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    getLocalTodayDateString()
   );
   return (
     <CalendarContext.Provider value={{ selectedDate, setSelectedDate }}>

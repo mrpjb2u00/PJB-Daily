@@ -21,6 +21,7 @@ import { useNotes } from '@/contexts/NotesContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { router } from 'expo-router';
 import { getItemsMapForMonth } from '@/utils/recurrence';
+import { formatCalendarDate, getDaysInMonth, getLocalTodayDateString } from '@/utils/date';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
@@ -28,10 +29,6 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 const TABLET_BREAKPOINT = 768;
-
-function toDateStr(year: number, month: number, day: number): string {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -55,7 +52,7 @@ export default function CalendarScreen() {
   // Tablet: date circle (24) + 3 pills (16ea) + gap + "+X more" (13) + padding = 96
   const cellHeight = isTablet ? 96 : 76;
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalTodayDateString();
 
   const [viewYear, setViewYear] = useState<number>(() => {
     const [y] = selectedDate.split('-').map(Number);
@@ -80,7 +77,7 @@ export default function CalendarScreen() {
 
   const calendarDays = useMemo(() => {
     const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInMonth = getDaysInMonth(viewYear, viewMonth);
     const cells: (number | null)[] = [];
     for (let i = 0; i < firstDayOfMonth; i++) cells.push(null);
     for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -106,7 +103,7 @@ export default function CalendarScreen() {
 
   const handleDayPress = useCallback((day: number) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync();
-    const dateStr = toDateStr(viewYear, viewMonth, day);
+    const dateStr = formatCalendarDate(viewYear, viewMonth, day);
     setSelectedDate(dateStr);
     const cellItems = itemsMap.get(dateStr);
     if (cellItems && cellItems.length > 0) {
@@ -189,7 +186,7 @@ export default function CalendarScreen() {
                     />
                   );
                 }
-                const dateStr = toDateStr(viewYear, viewMonth, day);
+                const dateStr = formatCalendarDate(viewYear, viewMonth, day);
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
                 const cellItems = itemsMap.get(dateStr) || [];

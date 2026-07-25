@@ -18,14 +18,12 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotes } from '@/contexts/NotesContext';
+import { formatCalendarDateLabel } from '@/utils/date';
 
 const DRAFT_KEY = 'draft:note:new';
 
 function formatDateLabel(dateStr: string): string {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return formatCalendarDateLabel(dateStr, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function wordCount(text: string): number {

@@ -1,37 +1,27 @@
 import type { Todo, RecurrenceType } from '@/contexts/TodoContext';
-
-function parseDateStr(dateStr: string): Date {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function daysBetween(a: Date, b: Date): number {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const aTime = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const bTime = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.round((bTime - aTime) / msPerDay);
-}
+import {
+  daysBetweenCalendarDates,
+  formatCalendarDate,
+  getDaysInMonth,
+  parseCalendarDate,
+} from './date';
 
 function monthsBetween(start: Date, target: Date): number {
   return (target.getFullYear() - start.getFullYear()) * 12
     + (target.getMonth() - start.getMonth());
 }
 
-function lastDayOfMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-
 function canonicalDay(startDay: number, targetYear: number, targetMonth: number): number {
-  return Math.min(startDay, lastDayOfMonth(targetYear, targetMonth));
+  return Math.min(startDay, getDaysInMonth(targetYear, targetMonth));
 }
 
 export function taskOccursOnDate(todo: Todo, dateStr: string): boolean {
   if (!todo.dueDate) return false;
 
-  const start = parseDateStr(todo.dueDate);
-  const target = parseDateStr(dateStr);
+  const start = parseCalendarDate(todo.dueDate);
+  const target = parseCalendarDate(dateStr);
 
-  if (isNaN(start.getTime()) || isNaN(target.getTime())) return false;
+  if (!start || !target) return false;
 
   const startDay = start.getDate();
 
@@ -44,12 +34,12 @@ export function taskOccursOnDate(todo: Todo, dateStr: string): boolean {
 
     case 'weekly': {
       if (target < start) return false;
-      return daysBetween(start, target) % 7 === 0;
+      return daysBetweenCalendarDates(start, target) % 7 === 0;
     }
 
     case 'biweekly': {
       if (target < start) return false;
-      return daysBetween(start, target) % 14 === 0;
+      return daysBetweenCalendarDates(start, target) % 14 === 0;
     }
 
     case 'monthly': {
@@ -94,10 +84,10 @@ export function getDatesWithTasksInMonth(
   month: number,
 ): Set<string> {
   const set = new Set<string>();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = getDaysInMonth(year, month);
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateStr = formatCalendarDate(year, month, day);
     for (const todo of todos) {
       if (taskOccursOnDate(todo, dateStr)) {
         set.add(dateStr);
@@ -115,10 +105,10 @@ export function getTasksMapForMonth(
   month: number,
 ): Map<string, Todo[]> {
   const map = new Map<string, Todo[]>();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = getDaysInMonth(year, month);
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateStr = formatCalendarDate(year, month, day);
     const tasks: Todo[] = [];
     for (const todo of todos) {
       if (taskOccursOnDate(todo, dateStr)) {
@@ -146,10 +136,10 @@ export function getItemsMapForMonth(
   month: number,
 ): Map<string, CalendarItem[]> {
   const map = new Map<string, CalendarItem[]>();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = getDaysInMonth(year, month);
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateStr = formatCalendarDate(year, month, day);
     const items: CalendarItem[] = [];
 
     for (const todo of todos) {

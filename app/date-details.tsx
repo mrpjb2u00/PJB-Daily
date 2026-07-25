@@ -20,14 +20,12 @@ import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
 import type { Note } from '@/contexts/NotesContext';
 import { getTasksForDate } from '@/utils/recurrence';
+import { formatCalendarDateLabel } from '@/utils/date';
 import TodoItem from '@/components/TodoItem';
 import NoteCard from '@/components/NoteCard';
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', {
+  return formatCalendarDateLabel(dateStr, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -36,10 +34,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatDateShort(dateStr: string): string {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  return formatCalendarDateLabel(dateStr, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 function getNotesForDate(notes: Note[], dateStr: string): Note[] {
