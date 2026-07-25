@@ -40,9 +40,12 @@ export default function AuthScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, isLoading, login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [firstName, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [birthdayMonth, setBirthdayMonth] = useState('');
+  const [birthdayDay, setBirthdayDay] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showForgotSheet, setShowForgotSheet] = useState(false);
@@ -106,9 +109,12 @@ export default function AuthScreen() {
     setSubmitting(true);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
+    const birthday = birthdayMonth.trim() || birthdayDay.trim()
+      ? { month: Number(birthdayMonth), day: Number(birthdayDay) }
+      : null;
     const result = isLogin
       ? await login(email, password)
-      : await register(username, email, password);
+      : await register(firstName, username, email, password, birthday);
 
     setSubmitting(false);
     if (result.success) {
@@ -123,7 +129,7 @@ export default function AuthScreen() {
 
   const canSubmit = isLogin
     ? email.trim() && password
-    : username.trim() && email.trim() && password;
+    : firstName.trim() && username.trim() && email.trim() && password;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -217,23 +223,88 @@ export default function AuthScreen() {
             </View>
 
             {!isLogin && (
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.inputBg,
-                    color: theme.text,
-                    borderColor: theme.border,
-                    fontFamily: 'Inter_400Regular',
-                  },
-                ]}
-                placeholder="Username"
-                placeholderTextColor={theme.textTertiary}
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBg,
+                      color: theme.text,
+                      borderColor: theme.border,
+                      fontFamily: 'Inter_400Regular',
+                    },
+                  ]}
+                  placeholder="First Name"
+                  placeholderTextColor={theme.textTertiary}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  textContentType="givenName"
+                />
+
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBg,
+                      color: theme.text,
+                      borderColor: theme.border,
+                      fontFamily: 'Inter_400Regular',
+                    },
+                  ]}
+                  placeholder="Username"
+                  placeholderTextColor={theme.textTertiary}
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
+                <View style={styles.birthdayGroup}>
+                  <Text style={[styles.helperText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                    Birthday optional. Used only for birthday greetings.
+                  </Text>
+                  <View style={styles.birthdayRow}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.birthdayInput,
+                        {
+                          backgroundColor: theme.inputBg,
+                          color: theme.text,
+                          borderColor: theme.border,
+                          fontFamily: 'Inter_400Regular',
+                        },
+                      ]}
+                      placeholder="Month"
+                      placeholderTextColor={theme.textTertiary}
+                      value={birthdayMonth}
+                      onChangeText={setBirthdayMonth}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.birthdayInput,
+                        {
+                          backgroundColor: theme.inputBg,
+                          color: theme.text,
+                          borderColor: theme.border,
+                          fontFamily: 'Inter_400Regular',
+                        },
+                      ]}
+                      placeholder="Day"
+                      placeholderTextColor={theme.textTertiary}
+                      value={birthdayDay}
+                      onChangeText={setBirthdayDay}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                  </View>
+                </View>
+              </>
             )}
 
             <TextInput
@@ -476,6 +547,20 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
+  },
+  birthdayGroup: {
+    gap: 8,
+  },
+  birthdayRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  birthdayInput: {
+    flex: 1,
+  },
+  helperText: {
+    fontSize: 12,
+    lineHeight: 16,
   },
   errorText: {
     fontSize: 13,

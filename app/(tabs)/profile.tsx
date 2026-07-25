@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Platform,
   ScrollView,
   Switch,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,19 +19,37 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
+import { formatBirthday } from '@/utils/profile';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const { todos } = useTodos();
   const { notes } = useNotes();
+  const [firstName, setFirstName] = useState('');
+  const [username, setUsername] = useState('');
+  const [birthdayMonth, setBirthdayMonth] = useState('');
+  const [birthdayDay, setBirthdayDay] = useState('');
+  const [profileMessage, setProfileMessage] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const topPad = Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24);
   const bottomPad = Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 20) + 16;
 
-  const initial = user?.username?.charAt(0).toUpperCase() || '?';
+  useEffect(() => {
+    setFirstName(user?.firstName || '');
+    setUsername(user?.username || '');
+    setBirthdayMonth(user?.birthdayMonth ? String(user.birthdayMonth) : '');
+    setBirthdayDay(user?.birthdayDay ? String(user.birthdayDay) : '');
+    setProfileMessage('');
+    setProfileError('');
+  }, [user]);
+
+  const displayName = user?.firstName || user?.username || 'User';
+  const initial = displayName.charAt(0).toUpperCase() || '?';
   const openTodoCount = todos.filter((t) => !t.completed).length;
   const noteCount = notes.length;
 
@@ -41,6 +61,33 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     logout();
+  };
+
+  const handleRemoveBirthday = () => {
+    setBirthdayMonth('');
+    setBirthdayDay('');
+    setProfileMessage('');
+    setProfileError('');
+  };
+
+  const handleSaveProfile = async () => {
+    if (profileSubmitting) return;
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setProfileMessage('');
+    setProfileError('');
+    setProfileSubmitting(true);
+    const birthday = birthdayMonth.trim() || birthdayDay.trim()
+      ? { month: Number(birthdayMonth), day: Number(birthdayDay) }
+      : null;
+    const result = await updateProfile(firstName, username, birthday);
+    setProfileSubmitting(false);
+    if (result.success) {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setProfileMessage('Personal information saved.');
+    } else {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setProfileError(result.error || 'Could not save personal information.');
+    }
   };
 
   return (
@@ -72,12 +119,148 @@ export default function ProfileScreen() {
             </LinearGradient>
 
             <Text style={[styles.profileName, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
-              {user?.username || 'User'}
+              {displayName}
             </Text>
             <Text style={[styles.profileEmail, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
               {user?.email || ''}
             </Text>
           </LinearGradient>
+        </View>
+
+        <SectionLabel label="Personal Information" theme={theme} />
+        <View style={[styles.card, styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.inputBg,
+                color: theme.text,
+                borderColor: theme.border,
+                fontFamily: 'Inter_400Regular',
+              },
+            ]}
+            placeholder="First Name"
+            placeholderTextColor={theme.textTertiary}
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            autoCorrect={false}
+            textContentType="givenName"
+          />
+
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.inputBg,
+                color: theme.text,
+                borderColor: theme.border,
+                fontFamily: 'Inter_400Regular',
+              },
+            ]}
+            placeholder="Username"
+            placeholderTextColor={theme.textTertiary}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <View style={styles.birthdayGroup}>
+            <View style={styles.birthdayHeader}>
+              <Text style={[styles.helperText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                Birthday optional. Used only for birthday greetings.
+              </Text>
+              <Text style={[styles.birthdayValue, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
+                {formatBirthday(Number(birthdayMonth), Number(birthdayDay))}
+              </Text>
+            </View>
+            <View style={styles.birthdayRow}>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.birthdayInput,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.text,
+                    borderColor: theme.border,
+                    fontFamily: 'Inter_400Regular',
+                  },
+                ]}
+                placeholder="Month"
+                placeholderTextColor={theme.textTertiary}
+                value={birthdayMonth}
+                onChangeText={setBirthdayMonth}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.birthdayInput,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.text,
+                    borderColor: theme.border,
+                    fontFamily: 'Inter_400Regular',
+                  },
+                ]}
+                placeholder="Day"
+                placeholderTextColor={theme.textTertiary}
+                value={birthdayDay}
+                onChangeText={setBirthdayDay}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+              <Pressable
+                onPress={handleRemoveBirthday}
+                accessibilityRole="button"
+                accessibilityLabel="Remove Birthday"
+                style={({ pressed }) => [
+                  styles.clearBirthdayButton,
+                  {
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Ionicons name="close" size={18} color={theme.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {!!profileError && (
+            <Text style={[styles.feedbackText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+              {profileError}
+            </Text>
+          )}
+          {!!profileMessage && (
+            <Text style={[styles.feedbackText, { color: theme.success, fontFamily: 'Inter_500Medium' }]}>
+              {profileMessage}
+            </Text>
+          )}
+
+          <Pressable
+            onPress={handleSaveProfile}
+            disabled={profileSubmitting}
+            accessibilityRole="button"
+            accessibilityLabel="Save Personal Information"
+            style={({ pressed }) => [
+              styles.saveButton,
+              {
+                backgroundColor: theme.accent,
+                opacity: profileSubmitting ? 0.55 : pressed ? 0.85 : 1,
+              },
+            ]}
+          >
+            {profileSubmitting ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={[styles.saveButtonText, { fontFamily: 'Inter_700Bold' }]}>
+                Save Personal Information
+              </Text>
+            )}
+          </Pressable>
         </View>
 
         {/* ── STATS ROW ── */}
@@ -278,6 +461,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 24,
     overflow: 'hidden',
+  },
+  formCard: {
+    padding: 14,
+    gap: 12,
+  },
+  input: {
+    fontSize: 15,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  birthdayGroup: {
+    gap: 8,
+  },
+  birthdayHeader: {
+    gap: 2,
+  },
+  birthdayRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  birthdayInput: {
+    flex: 1,
+  },
+  clearBirthdayButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  helperText: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  birthdayValue: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  feedbackText: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  saveButton: {
+    minHeight: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 15,
   },
 
   /* Row */

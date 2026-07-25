@@ -31,16 +31,6 @@ export function getGreeting(date = new Date(), firstName?: string): string {
   return firstName ? `${period}, ${firstName}` : `${period}!`;
 }
 
-export function getSafeFirstName(username?: string): string | undefined {
-  const trimmed = username?.trim();
-  if (!trimmed || trimmed.toLowerCase() === 'user' || trimmed.includes('@')) return undefined;
-
-  const first = trimmed.split(/\s+/)[0];
-  if (!/[a-z]/i.test(first)) return undefined;
-
-  return first.charAt(0).toUpperCase() + first.slice(1);
-}
-
 export function createPreviewSection(items: BriefingItemPreview[]): BriefingSection | undefined {
   if (items.length === 0) return undefined;
 

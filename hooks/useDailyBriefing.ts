@@ -8,7 +8,6 @@ import { getLocalTodayDateString } from '@/utils/date';
 import {
   buildDailyBriefingContent,
   getDailyBriefingStorageKey,
-  getSafeFirstName,
   type DailyBriefingContent,
 } from '@/utils/dailyBriefing';
 
@@ -33,7 +32,7 @@ export function useDailyBriefing(): DailyBriefingState {
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const today = getLocalTodayDateString();
-  const firstName = getSafeFirstName(user?.username);
+  const firstName = user?.firstName;
   const content = useMemo(
     () => buildDailyBriefingContent(todos, notes, today),
     [todos, notes, today],
