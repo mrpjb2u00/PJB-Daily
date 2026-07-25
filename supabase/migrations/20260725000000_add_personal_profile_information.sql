@@ -7,6 +7,24 @@
 -- - public.profiles is the application profile source of truth.
 -- - Auth user metadata seeds initial profile creation and remains compatibility data only.
 -- - This migration is additive and preserves existing Auth users/profile rows.
+-- Supabase migration execution is expected to wrap this file transactionally.
+-- If any safety check raises, no profile rows, triggers, functions, or indexes
+-- should remain partially installed.
+
+do $$
+begin
+  if exists (
+    select 1
+    from auth.users
+    where raw_user_meta_data ->> 'username' is not null
+      and btrim(raw_user_meta_data ->> 'username') <> ''
+      and length(btrim(raw_user_meta_data ->> 'username')) between 3 and 50
+    group by lower(btrim(raw_user_meta_data ->> 'username'))
+    having count(*) > 1
+  ) then
+    raise exception 'Duplicate normalized Auth usernames were found in auth.users.raw_user_meta_data. No usernames were changed. Run supabase/inspection/inspect_profile_architecture.sql, resolve username conflicts manually, and retry this migration.';
+  end if;
+end $$;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -48,7 +66,7 @@ begin
   ) then
     alter table public.profiles
       add constraint profiles_username_length_check
-      check (username is null or btrim(username) = '' or length(btrim(username)) >= 3)
+      check (username is null or btrim(username) = '' or length(btrim(username)) between 3 and 50)
       not valid;
   end if;
 
@@ -141,6 +159,10 @@ declare
   parsed_birthday_day smallint;
 begin
   if raw_username is not null and length(raw_username) < 3 then
+    raw_username := null;
+  end if;
+
+  if raw_username is not null and length(raw_username) > 50 then
     raw_username := null;
   end if;
 
@@ -241,7 +263,7 @@ insert into public.profiles (
 select
   u.id,
   case
-    when length(nullif(btrim(u.raw_user_meta_data ->> 'username'), '')) >= 3
+    when length(nullif(btrim(u.raw_user_meta_data ->> 'username'), '')) between 3 and 50
       then nullif(btrim(u.raw_user_meta_data ->> 'username'), '')
     else null
   end as username,
