@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { ensureProfile, fetchProfile, saveProfile, type Profile } from '@/lib/profileService';
 import { validateProfileInput } from '@/utils/profile';
 
 interface User {
@@ -34,7 +35,6 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const NOT_CONFIGURED_MSG = 'Authentication service is not configured. Please contact the app administrator.';
-const PROFILE_TABLE = 'profiles';
 
 function friendlyError(message: string): string {
   const map: Record<string, string> = {
@@ -51,120 +51,53 @@ function friendlyError(message: string): string {
   return map[message] || 'Something went wrong. Please try again later.';
 }
 
-interface ProfileRow {
-  username?: string | null;
-  first_name?: string | null;
-  birthday_month?: number | null;
-  birthday_day?: number | null;
-}
-
-function metadataToProfileRow(authUser: SupabaseUser): ProfileRow {
-  const meta = authUser.user_metadata || {};
-
-  return {
-    username: typeof meta.username === 'string' ? meta.username : null,
-    first_name: typeof meta.first_name === 'string' ? meta.first_name : null,
-    birthday_month: typeof meta.birthday_month === 'number' ? meta.birthday_month : null,
-    birthday_day: typeof meta.birthday_day === 'number' ? meta.birthday_day : null,
-  };
-}
-
-function authUserToUser(authUser: SupabaseUser | null | undefined, profile?: ProfileRow | null): User | null {
+function authUserToUser(authUser: SupabaseUser | null | undefined, profile: Profile | null): User | null {
   if (!authUser) return null;
-  const profileSource = profile || metadataToProfileRow(authUser);
 
   return {
     id: authUser.id,
-    username: profileSource.username || authUser.email?.split('@')[0] || 'user',
+    username: profile?.username || '',
     email: authUser.email || '',
-    firstName: profileSource.first_name || undefined,
-    birthdayMonth: typeof profileSource.birthday_month === 'number' ? profileSource.birthday_month : null,
-    birthdayDay: typeof profileSource.birthday_day === 'number' ? profileSource.birthday_day : null,
+    firstName: profile?.firstName || undefined,
+    birthdayMonth: profile?.birthdayMonth ?? null,
+    birthdayDay: profile?.birthdayDay ?? null,
   };
 }
 
-function isMissingProfileTableError(code?: string): boolean {
-  return code === '42P01' || code === 'PGRST205';
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const saveProfileRow = useCallback(async (
-    userId: string,
-    firstName: string | null,
-    username: string | null,
-    birthdayMonth: number | null,
-    birthdayDay: number | null,
-  ) => {
-    const { error } = await supabase
-      .from(PROFILE_TABLE)
-      .upsert({
-        id: userId,
-        username,
-        first_name: firstName,
-        birthday_month: birthdayMonth,
-        birthday_day: birthdayDay,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
-
-    if (error) {
-      return {
-        success: false,
-        error: isMissingProfileTableError(error.code)
-          ? 'Profile storage is not ready yet. Please apply the reviewed profile migration first.'
-          : error.message,
-      };
-    }
-
-    return { success: true };
-  }, []);
-
-  const createMissingProfileFromMetadata = useCallback(async (authUser: SupabaseUser) => {
-    const metadataProfile = metadataToProfileRow(authUser);
-    const { error } = await supabase
-      .from(PROFILE_TABLE)
-      .upsert({
-        id: authUser.id,
-        username: metadataProfile.username,
-        first_name: metadataProfile.first_name,
-        birthday_month: metadataProfile.birthday_month,
-        birthday_day: metadataProfile.birthday_day,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id', ignoreDuplicates: true });
-
-    if (error && !isMissingProfileTableError(error.code)) {
-      console.error('Failed to create missing profile:', error.message);
-    }
-  }, []);
 
   const loadUserFromSession = useCallback(async (session: Session | null) => {
     if (!session?.user) {
-      setUser(null);
+      setAuthUser(null);
+      setProfile(null);
       return;
     }
 
-    const { data, error } = await supabase
-      .from(PROFILE_TABLE)
-      .select('username, first_name, birthday_month, birthday_day')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
-    if (error && !isMissingProfileTableError(error.code)) {
-      console.error('Failed to load profile:', error.message);
-    }
-
-    if (!error && data) {
-      setUser(authUserToUser(session.user, data));
+    setAuthUser(session.user);
+    const { profile: loadedProfile, error } = await fetchProfile(session.user.id);
+    if (error) {
+      console.error('Failed to load profile:', error);
+      setProfile(null);
       return;
     }
 
-    setUser(authUserToUser(session.user, null));
-    if (!error) {
-      createMissingProfileFromMetadata(session.user);
+    if (loadedProfile) {
+      setProfile(loadedProfile);
+      return;
     }
-  }, [createMissingProfileFromMetadata]);
+
+    const { profile: createdProfile, error: createError } = await ensureProfile(session.user.id);
+    if (createError) {
+      console.error('Failed to create missing profile:', createError);
+      setProfile(null);
+      return;
+    }
+
+    setProfile(createdProfile);
+  }, []);
 
   useEffect(() => {
     if (!supabaseConfigured) {
@@ -246,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabaseConfigured) {
       return { success: false, error: NOT_CONFIGURED_MSG };
     }
-    if (!user) {
+    if (!authUser) {
       return { success: false, error: 'Please sign in before updating your profile.' };
     }
     const profile = validateProfileInput({ firstName, username, birthday });
@@ -254,32 +187,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: profile.error };
     }
 
-    const profileResult = await saveProfileRow(
-      user.id,
-      profile.firstName || '',
-      profile.username || '',
-      profile.birthdayMonth ?? null,
-      profile.birthdayDay ?? null,
-    );
-    if (!profileResult.success) return profileResult;
-
-    setUser({
-      ...user,
+    const result = await saveProfile({
+      id: authUser.id,
       username: profile.username || '',
-      firstName: profile.firstName,
+      firstName: profile.firstName || '',
       birthdayMonth: profile.birthdayMonth ?? null,
       birthdayDay: profile.birthdayDay ?? null,
     });
+    if (result.error) return { success: false, error: result.error };
+    setProfile(result.profile);
     return { success: true };
-  }, [saveProfileRow, user]);
+  }, [authUser]);
 
   const logout = useCallback(async () => {
     if (supabaseConfigured) {
       await supabase.auth.signOut();
     } else {
-      setUser(null);
+      setAuthUser(null);
+      setProfile(null);
     }
   }, []);
+
+  const user = useMemo(() => authUserToUser(authUser, profile), [authUser, profile]);
 
   const value = useMemo(() => ({
     user,
