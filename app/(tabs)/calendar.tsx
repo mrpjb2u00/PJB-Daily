@@ -131,7 +131,7 @@ function getGreeting(): string {
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const { theme, isDark } = useTheme();
+  const { theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { todos } = useTodos();
   const { notes } = useNotes();
@@ -271,6 +271,19 @@ export default function CalendarScreen() {
             My Calendar
           </Text>
         </View>
+
+        <View style={styles.headerRight}>
+          <Pressable
+            onPress={toggleTheme}
+            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
+          >
+            <Ionicons
+              name={isDark ? 'sunny' : 'moon'}
+              size={18}
+              color={isDark ? theme.gradientEnd : theme.gradientStart}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -333,11 +346,11 @@ export default function CalendarScreen() {
                       {
                         borderColor: theme.border + '45',
                         height: cellHeight,
-                        backgroundColor: cell.isCurrentMonth ? theme.surface : theme.surfaceSecondary + (isDark ? '18' : '60'),
+                        backgroundColor: cell.isCurrentMonth ? theme.surface : theme.surfaceSecondary + (isDark ? '12' : '45'),
                       },
                       isSelected && {
-                        backgroundColor: theme.accent + (isDark ? '1F' : '14'),
-                        borderColor: theme.accent + '8A',
+                        backgroundColor: theme.accent + (isDark ? '29' : '1C'),
+                        borderColor: theme.accent + 'A8',
                         borderWidth: 1,
                       },
                       pressed && { opacity: 0.75 },
@@ -374,7 +387,7 @@ export default function CalendarScreen() {
                                 ? theme.accent
                                 : cell.isCurrentMonth
                                   ? theme.text
-                                  : theme.textTertiary,
+                                  : theme.textTertiary + (isDark ? 'CC' : 'D6'),
                           },
                           Platform.OS === 'android' && { includeFontPadding: false },
                         ]}
@@ -402,7 +415,7 @@ export default function CalendarScreen() {
                             styles.taskPill,
                             {
                               backgroundColor: pillColor + (isDark ? '24' : '1F'),
-                              opacity: cell.isCurrentMonth ? 1 : 0.58,
+                              opacity: cell.isCurrentMonth ? 1 : 0.48,
                             },
                             isCompleted && { backgroundColor: theme.completedBg },
                           ]}
@@ -483,6 +496,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
   },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 2,
+  },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -528,6 +553,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    paddingTop: 4,
   },
   dayCell: {
     width: `${100 / 7}%`,
