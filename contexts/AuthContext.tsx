@@ -58,20 +58,28 @@ interface ProfileRow {
   birthday_day?: number | null;
 }
 
+function metadataToProfileRow(authUser: SupabaseUser): ProfileRow {
+  const meta = authUser.user_metadata || {};
+
+  return {
+    username: typeof meta.username === 'string' ? meta.username : null,
+    first_name: typeof meta.first_name === 'string' ? meta.first_name : null,
+    birthday_month: typeof meta.birthday_month === 'number' ? meta.birthday_month : null,
+    birthday_day: typeof meta.birthday_day === 'number' ? meta.birthday_day : null,
+  };
+}
+
 function authUserToUser(authUser: SupabaseUser | null | undefined, profile?: ProfileRow | null): User | null {
   if (!authUser) return null;
-  const meta = authUser.user_metadata || {};
+  const profileSource = profile || metadataToProfileRow(authUser);
+
   return {
     id: authUser.id,
-    username: profile?.username || meta.username || authUser.email?.split('@')[0] || 'user',
+    username: profileSource.username || authUser.email?.split('@')[0] || 'user',
     email: authUser.email || '',
-    firstName: profile?.first_name || (typeof meta.first_name === 'string' ? meta.first_name : undefined),
-    birthdayMonth: typeof profile?.birthday_month === 'number'
-      ? profile.birthday_month
-      : typeof meta.birthday_month === 'number' ? meta.birthday_month : null,
-    birthdayDay: typeof profile?.birthday_day === 'number'
-      ? profile.birthday_day
-      : typeof meta.birthday_day === 'number' ? meta.birthday_day : null,
+    firstName: profileSource.first_name || undefined,
+    birthdayMonth: typeof profileSource.birthday_month === 'number' ? profileSource.birthday_month : null,
+    birthdayDay: typeof profileSource.birthday_day === 'number' ? profileSource.birthday_day : null,
   };
 }
 
@@ -83,29 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadUserFromSession = useCallback(async (session: Session | null) => {
-    if (!session?.user) {
-      setUser(null);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from(PROFILE_TABLE)
-      .select('username, first_name, birthday_month, birthday_day')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
-    if (error && !isMissingProfileTableError(error.code)) {
-      console.error('Failed to load profile:', error.message);
-    }
-
-    setUser(authUserToUser(session.user, error ? null : data));
-  }, []);
-
   const saveProfileRow = useCallback(async (
     userId: string,
-    firstName: string,
-    username: string,
+    firstName: string | null,
+    username: string | null,
     birthdayMonth: number | null,
     birthdayDay: number | null,
   ) => {
@@ -131,6 +120,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return { success: true };
   }, []);
+
+  const createMissingProfileFromMetadata = useCallback(async (authUser: SupabaseUser) => {
+    const metadataProfile = metadataToProfileRow(authUser);
+    const { error } = await supabase
+      .from(PROFILE_TABLE)
+      .upsert({
+        id: authUser.id,
+        username: metadataProfile.username,
+        first_name: metadataProfile.first_name,
+        birthday_month: metadataProfile.birthday_month,
+        birthday_day: metadataProfile.birthday_day,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id', ignoreDuplicates: true });
+
+    if (error && !isMissingProfileTableError(error.code)) {
+      console.error('Failed to create missing profile:', error.message);
+    }
+  }, []);
+
+  const loadUserFromSession = useCallback(async (session: Session | null) => {
+    if (!session?.user) {
+      setUser(null);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from(PROFILE_TABLE)
+      .select('username, first_name, birthday_month, birthday_day')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (error && !isMissingProfileTableError(error.code)) {
+      console.error('Failed to load profile:', error.message);
+    }
+
+    if (!error && data) {
+      setUser(authUserToUser(session.user, data));
+      return;
+    }
+
+    setUser(authUserToUser(session.user, null));
+    if (!error) {
+      createMissingProfileFromMetadata(session.user);
+    }
+  }, [createMissingProfileFromMetadata]);
 
   useEffect(() => {
     if (!supabaseConfigured) {
@@ -188,7 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (password.length < 6) {
       return { success: false, error: 'Password must be at least 6 characters' };
     }
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: trimEmail,
       password,
       options: {
@@ -201,18 +235,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) return { success: false, error: friendlyError(error.message) };
-    if (data.user) {
-      const profileResult = await saveProfileRow(
-        data.user.id,
-        profile.firstName || '',
-        trimUser,
-        profile.birthdayMonth ?? null,
-        profile.birthdayDay ?? null,
-      );
-      if (!profileResult.success) return profileResult;
-    }
     return { success: true };
-  }, [saveProfileRow]);
+  }, []);
 
   const updateProfile = useCallback(async (
     firstName: string,
@@ -239,21 +263,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     if (!profileResult.success) return profileResult;
 
-    const { data, error } = await supabase.auth.updateUser({
-      data: {
-        username: profile.username,
-        first_name: profile.firstName,
-        birthday_month: profile.birthdayMonth,
-        birthday_day: profile.birthdayDay,
-      },
+    setUser({
+      ...user,
+      username: profile.username || '',
+      firstName: profile.firstName,
+      birthdayMonth: profile.birthdayMonth ?? null,
+      birthdayDay: profile.birthdayDay ?? null,
     });
-    if (error) return { success: false, error: friendlyError(error.message) };
-    setUser(authUserToUser(data.user, {
-      username: profile.username,
-      first_name: profile.firstName,
-      birthday_month: profile.birthdayMonth,
-      birthday_day: profile.birthdayDay,
-    }));
     return { success: true };
   }, [saveProfileRow, user]);
 
