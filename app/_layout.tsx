@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TodoProvider } from "@/contexts/TodoContext";
 import { NotesProvider } from "@/contexts/NotesContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
+import DailyBriefingController from "@/components/DailyBriefingController";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -96,6 +97,7 @@ export default function RootLayout() {
                   <TodoProvider>
                     <NotesProvider>
                       <RootLayoutNav />
+                      <DailyBriefingController />
                     </NotesProvider>
                   </TodoProvider>
                 </CalendarProvider>
