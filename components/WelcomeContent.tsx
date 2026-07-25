@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/contexts/ThemeContext';
+
+const logoPreview = require('../assets/branding/logo-v1-preview.png');
 
 function FeatureRow({ icon, text, theme }: { icon: any; text: string; theme: any }) {
   return (
@@ -81,14 +84,12 @@ export default function WelcomeContent() {
         ]}
       >
         <View style={styles.iconWrap}>
-          <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.iconCircle}
-          >
-            <Ionicons name="checkmark-done" size={48} color="#fff" />
-          </LinearGradient>
+          <Image
+            source={logoPreview}
+            style={styles.logoImage}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
         </View>
 
         <Text
@@ -166,12 +167,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     marginTop: 40,
   },
-  iconCircle: {
+  logoImage: {
     width: 96,
     height: 96,
     borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 32,

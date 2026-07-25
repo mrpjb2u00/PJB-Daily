@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Modal,
+  Image,
 } from 'react-native';
 import { router, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 
 const SAVED_EMAIL_KEY = '@pjb_last_email';
+const logoPreview = require('../assets/branding/logo-v1-preview.png');
 
 function friendlyResetError(message: string): string {
   const map: Record<string, string> = {
@@ -158,14 +160,12 @@ export default function AuthScreen() {
           ]}
           keyboardShouldPersistTaps="handled"
         >
-          <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd] as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.iconCircle}
-          >
-            <Ionicons name="checkmark-done" size={36} color="#fff" />
-          </LinearGradient>
+          <Image
+            source={logoPreview}
+            style={styles.logoImage}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
 
           <Text style={[styles.appTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
             PJB Daily
@@ -436,12 +436,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 28,
   },
-  iconCircle: {
+  logoImage: {
     width: 72,
     height: 72,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 20,
   },
   appTitle: {
