@@ -11,6 +11,7 @@ import {
   Switch,
   Alert,
   AppState,
+  Modal,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,11 +20,22 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos, RecurrenceType, RECURRENCE_LABELS } from '@/contexts/TodoContext';
-import { formatCalendarDateLabel } from '@/utils/date';
+import {
+  formatCalendarDate,
+  formatCalendarDateLabel,
+  getDaysInMonth,
+  getLocalTodayDateString,
+  parseCalendarDate,
+} from '@/utils/date';
 
 const DRAFT_KEY = 'draft:task:new';
 
 const RECURRENCE_OPTIONS: RecurrenceType[] = ['none', 'daily', 'weekly', 'biweekly', 'monthly', 'quarterly', '6months', 'yearly'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
 type Priority = 'none' | 'low' | 'medium' | 'high';
 
@@ -38,11 +50,141 @@ function formatDateLabel(dateStr: string): string {
   return formatCalendarDateLabel(dateStr, { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function getPickerBaseDate(dateStr: string): Date {
+  return parseCalendarDate(dateStr) ?? parseCalendarDate(getLocalTodayDateString()) ?? new Date();
+}
+
 function SectionLabel({ label, theme }: { label: string; theme: any }) {
   return (
     <Text style={[styles.sectionLabel, { color: theme.textTertiary, fontFamily: 'Inter_600SemiBold' }]}>
       {label}
     </Text>
+  );
+}
+
+function DatePickerSheet({
+  visible,
+  value,
+  theme,
+  isDark,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  value: string;
+  theme: any;
+  isDark: boolean;
+  onSelect: (date: string) => void;
+  onClose: () => void;
+}) {
+  const baseDate = getPickerBaseDate(value);
+  const [viewYear, setViewYear] = useState(baseDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(baseDate.getMonth());
+
+  useEffect(() => {
+    if (!visible) return;
+    const nextBaseDate = getPickerBaseDate(value);
+    setViewYear(nextBaseDate.getFullYear());
+    setViewMonth(nextBaseDate.getMonth());
+  }, [visible, value]);
+
+  const selectedDate = value;
+  const today = getLocalTodayDateString();
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) cells.push(day);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const goToPrevMonth = () => {
+    if (viewMonth === 0) {
+      setViewYear((year) => year - 1);
+      setViewMonth(11);
+    } else {
+      setViewMonth((month) => month - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (viewMonth === 11) {
+      setViewYear((year) => year + 1);
+      setViewMonth(0);
+    } else {
+      setViewMonth((month) => month + 1);
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.datePickerOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[styles.datePickerCard, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+          <View style={styles.datePickerHeader}>
+            <Pressable
+              onPress={goToPrevMonth}
+              style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Ionicons name="chevron-back" size={18} color={theme.text} />
+            </Pressable>
+            <Text style={[styles.datePickerTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+              {MONTH_NAMES[viewMonth]} {viewYear}
+            </Text>
+            <Pressable
+              onPress={goToNextMonth}
+              style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Ionicons name="chevron-forward" size={18} color={theme.text} />
+            </Pressable>
+          </View>
+
+          <View style={styles.datePickerWeekdays}>
+            {DAYS.map((day) => (
+              <Text key={day} style={[styles.datePickerWeekday, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
+                {day}
+              </Text>
+            ))}
+          </View>
+
+          <View style={styles.datePickerGrid}>
+            {cells.map((day, index) => {
+              if (!day) return <View key={`empty-${index}`} style={styles.datePickerCell} />;
+              const dateStr = formatCalendarDate(viewYear, viewMonth, day);
+              const isSelected = dateStr === selectedDate;
+              const isToday = dateStr === today;
+              return (
+                <Pressable
+                  key={dateStr}
+                  onPress={() => onSelect(dateStr)}
+                  style={({ pressed }) => [
+                    styles.datePickerCell,
+                    pressed && { opacity: 0.75 },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.datePickerDay,
+                      isSelected && { backgroundColor: theme.accent },
+                      !isSelected && isToday && { backgroundColor: theme.accent + '20' },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.datePickerDayText,
+                        { color: isSelected ? '#fff' : isToday ? theme.accent : theme.text },
+                        { fontFamily: isSelected || isToday ? 'Inter_700Bold' : 'Inter_500Medium' },
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -62,6 +204,7 @@ export default function AddTaskScreen() {
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [priority, setPriority] = useState<Priority>('none');
   const [draftRestored, setDraftRestored] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const titleRef = useRef<TextInput>(null);
   const subtaskRef = useRef<TextInput>(null);
@@ -160,6 +303,17 @@ export default function AddTaskScreen() {
     setDueDate('');
   };
 
+  const openDatePicker = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDatePickerVisible(true);
+  };
+
+  const handleSelectDate = (date: string) => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDueDate(date);
+    setDatePickerVisible(false);
+  };
+
   const handleAddSubtask = useCallback(() => {
     const trimmed = newSubtask.trim();
     if (!trimmed) { setAddingSubtask(false); return; }
@@ -239,7 +393,17 @@ export default function AddTaskScreen() {
           <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
             {dueDate ? (
               <View style={styles.dateRow}>
-                <View style={[styles.datePill, { backgroundColor: theme.accent + '18', borderColor: theme.accent + '40' }]}>
+                <Pressable
+                  onPress={openDatePicker}
+                  style={({ pressed }) => [
+                    styles.datePill,
+                    {
+                      backgroundColor: theme.accent + '18',
+                      borderColor: theme.accent + '40',
+                      opacity: pressed ? 0.75 : 1,
+                    },
+                  ]}
+                >
                   <Ionicons name="calendar" size={14} color={theme.accent} />
                   <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
                     {formatDateLabel(dueDate)}
@@ -247,12 +411,18 @@ export default function AddTaskScreen() {
                   <Pressable onPress={handleClearDate} hitSlop={8}>
                     <Ionicons name="close-circle" size={16} color={theme.accent} />
                   </Pressable>
-                </View>
+                </Pressable>
               </View>
             ) : (
-              <Text style={[styles.emptyFieldText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
-                No due date set
-              </Text>
+              <Pressable
+                onPress={openDatePicker}
+                style={({ pressed }) => [styles.emptyDateButton, { opacity: pressed ? 0.75 : 1 }]}
+              >
+                <Ionicons name="calendar-outline" size={16} color={theme.textTertiary} />
+                <Text style={[styles.emptyFieldText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                  Tap to add a due date
+                </Text>
+              </Pressable>
             )}
           </View>
 
@@ -523,6 +693,14 @@ export default function AddTaskScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
+      <DatePickerSheet
+        visible={datePickerVisible}
+        value={dueDate}
+        theme={theme}
+        isDark={isDark}
+        onSelect={handleSelectDate}
+        onClose={() => setDatePickerVisible(false)}
+      />
     </>
   );
 }
@@ -578,8 +756,14 @@ const styles = StyleSheet.create({
   },
   emptyFieldText: {
     fontSize: 14,
-    paddingVertical: 4,
     fontStyle: 'italic',
+  },
+  emptyDateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
   },
   dateRow: {
     flexDirection: 'row',
@@ -595,6 +779,62 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dateText: {
+    fontSize: 13,
+  },
+  datePickerOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  datePickerCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  datePickerNav: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  datePickerTitle: {
+    fontSize: 17,
+  },
+  datePickerWeekdays: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  datePickerWeekday: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: 11,
+  },
+  datePickerGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  datePickerCell: {
+    width: `${100 / 7}%`,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  datePickerDay: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  datePickerDayText: {
     fontSize: 13,
   },
   recurrenceRow: {
