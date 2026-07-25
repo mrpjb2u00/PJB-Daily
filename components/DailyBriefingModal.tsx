@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -71,6 +72,7 @@ export default function DailyBriefingModal({
   const insets = useSafeAreaInsets();
   const fade = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(18)).current;
+  const usesNativeDriver = Platform.OS !== 'web';
 
   useEffect(() => {
     if (!visible) {
@@ -83,15 +85,15 @@ export default function DailyBriefingModal({
       Animated.timing(fade, {
         toValue: 1,
         duration: 220,
-        useNativeDriver: true,
+        useNativeDriver: usesNativeDriver,
       }),
       Animated.timing(translateY, {
         toValue: 0,
         duration: 220,
-        useNativeDriver: true,
+        useNativeDriver: usesNativeDriver,
       }),
     ]).start();
-  }, [fade, translateY, visible]);
+  }, [fade, translateY, usesNativeDriver, visible]);
 
   if (!content) return null;
 
