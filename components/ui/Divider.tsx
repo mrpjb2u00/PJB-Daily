@@ -28,7 +28,7 @@ export default function Divider({ color, inset = 0, style }: DividerProps) {
 
 const styles = StyleSheet.create({
   divider: {
+    alignSelf: 'stretch',
     height: BorderWidths.hairline,
-    width: '100%',
   },
 });

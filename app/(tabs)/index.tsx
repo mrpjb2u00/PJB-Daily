@@ -16,6 +16,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeToggle } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos, Todo, RecurrenceType } from '@/contexts/TodoContext';
@@ -37,7 +38,7 @@ const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
 
 export default function TodosScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { todos, toggleTodo, deleteTodo, isLoading } = useTodos();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
@@ -240,16 +241,7 @@ export default function TodosScreen() {
         </View>
 
         <View style={styles.headerRight}>
-          <Pressable
-            onPress={toggleTheme}
-            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
-          >
-            <Ionicons
-              name={isDark ? 'sunny' : 'moon'}
-              size={18}
-              color={isDark ? theme.gradientEnd : theme.gradientStart}
-            />
-          </Pressable>
+          <ThemeToggle />
         </View>
       </View>
 
@@ -383,13 +375,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 2,
-  },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: 20,

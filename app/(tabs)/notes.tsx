@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeToggle } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotes, Note } from '@/contexts/NotesContext';
 
@@ -75,7 +76,7 @@ function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void
 
 export default function NotesScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { notes, deleteNote, isLoading } = useNotes();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
@@ -133,16 +134,7 @@ export default function NotesScreen() {
         </View>
 
         <View style={styles.headerRight}>
-          <Pressable
-            onPress={toggleTheme}
-            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
-          >
-            <Ionicons
-              name={isDark ? 'sunny' : 'moon'}
-              size={18}
-              color={isDark ? theme.gradientEnd : theme.gradientStart}
-            />
-          </Pressable>
+          <ThemeToggle />
         </View>
       </View>
 
@@ -186,13 +178,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 2,
-  },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: 20,

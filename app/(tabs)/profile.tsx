@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
+import { AppCard, Divider, SectionLabel } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos } from '@/contexts/TodoContext';
@@ -100,7 +101,7 @@ export default function ProfileScreen() {
       >
 
         {/* ── PROFILE HEADER CARD ── */}
-        <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <AppCard padding="none" radius="panel" style={styles.profileCard}>
           <LinearGradient
             colors={[theme.gradientStart + '22', theme.gradientEnd + '10']}
             start={{ x: 0, y: 0 }}
@@ -125,10 +126,10 @@ export default function ProfileScreen() {
               {user?.email || ''}
             </Text>
           </LinearGradient>
-        </View>
+        </AppCard>
 
-        <SectionLabel label="Personal Information" theme={theme} />
-        <View style={[styles.card, styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <SectionLabel textStyle={styles.sectionLabelText}>Personal Information</SectionLabel>
+        <AppCard padding="none" style={[styles.card, styles.formCard]}>
           <TextInput
             style={[
               styles.input,
@@ -261,31 +262,31 @@ export default function ProfileScreen() {
               </Text>
             )}
           </Pressable>
-        </View>
+        </AppCard>
 
         {/* ── STATS ROW ── */}
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <AppCard padding="none" style={styles.statCard}>
             <Text style={[styles.statNumber, { color: theme.accent, fontFamily: 'Inter_700Bold' }]}>
               {openTodoCount}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
               Open To-Dos
             </Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          </AppCard>
+          <AppCard padding="none" style={styles.statCard}>
             <Text style={[styles.statNumber, { color: theme.accentSecondary, fontFamily: 'Inter_700Bold' }]}>
               {noteCount}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Inter_500Medium' }]}>
               Notes
             </Text>
-          </View>
+          </AppCard>
         </View>
 
         {/* ── PREFERENCES ── */}
-        <SectionLabel label="Preferences" theme={theme} />
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <SectionLabel textStyle={styles.sectionLabelText}>Preferences</SectionLabel>
+        <AppCard padding="none" style={styles.card}>
           <Pressable
             onPress={handleThemeToggle}
             style={({ pressed }) => [styles.row, { opacity: pressed ? 0.8 : 1 }]}
@@ -307,11 +308,11 @@ export default function ProfileScreen() {
               thumbColor={Platform.OS === 'android' ? (isDark ? theme.accent : theme.surface) : undefined}
             />
           </Pressable>
-        </View>
+        </AppCard>
 
         {/* ── ACCOUNT ── */}
-        <SectionLabel label="Account" theme={theme} />
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <SectionLabel textStyle={styles.sectionLabelText}>Account</SectionLabel>
+        <AppCard padding="none" style={styles.card}>
           <View style={styles.row}>
             <View style={[styles.iconWrap, { backgroundColor: theme.accent + '15' }]}>
               <Ionicons name="person-outline" size={18} color={theme.accent} />
@@ -326,7 +327,7 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <View style={[styles.separator, { backgroundColor: theme.border, marginLeft: 60 }]} />
+          <Divider inset={60} />
 
           <View style={styles.row}>
             <View style={[styles.iconWrap, { backgroundColor: theme.accent + '15' }]}>
@@ -341,11 +342,11 @@ export default function ProfileScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </AppCard>
 
         {/* ── SESSION ── */}
-        <SectionLabel label="Session" theme={theme} />
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.destructive + '35' }]}>
+        <SectionLabel textStyle={styles.sectionLabelText}>Session</SectionLabel>
+        <AppCard padding="none" borderColor={theme.destructive + '35'} style={styles.card}>
           <Pressable
             onPress={handleLogout}
             style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
@@ -361,7 +362,7 @@ export default function ProfileScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={16} color={theme.destructive + '80'} />
           </Pressable>
-        </View>
+        </AppCard>
 
         <Text style={[styles.footerText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
           PJB Daily
@@ -369,14 +370,6 @@ export default function ProfileScreen() {
 
       </ScrollView>
     </View>
-  );
-}
-
-function SectionLabel({ label, theme }: { label: string; theme: any }) {
-  return (
-    <Text style={[styles.sectionLabel, { color: theme.textTertiary, fontFamily: 'Inter_600SemiBold' }]}>
-      {label.toUpperCase()}
-    </Text>
   );
 }
 
@@ -448,11 +441,8 @@ const styles = StyleSheet.create({
   },
 
   /* Section label */
-  sectionLabel: {
-    fontSize: 11,
+  sectionLabelText: {
     letterSpacing: 1.1,
-    marginBottom: 8,
-    marginLeft: 2,
   },
 
   /* Card */
@@ -550,10 +540,6 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: 15,
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-  },
-
   /* Footer */
   footerText: {
     fontSize: 12,

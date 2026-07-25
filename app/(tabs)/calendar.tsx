@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeToggle } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTodos, type Todo } from '@/contexts/TodoContext';
@@ -131,7 +132,7 @@ function getGreeting(): string {
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const { todos } = useTodos();
   const { notes } = useNotes();
@@ -273,16 +274,7 @@ export default function CalendarScreen() {
         </View>
 
         <View style={styles.headerRight}>
-          <Pressable
-            onPress={toggleTheme}
-            style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
-          >
-            <Ionicons
-              name={isDark ? 'sunny' : 'moon'}
-              size={18}
-              color={isDark ? theme.gradientEnd : theme.gradientStart}
-            />
-          </Pressable>
+          <ThemeToggle />
         </View>
       </View>
 
@@ -500,13 +492,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 2,
-  },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: 16,
