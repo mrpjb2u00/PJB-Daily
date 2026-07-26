@@ -194,7 +194,14 @@ export default function TodosScreen() {
     if (isLoading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={theme.accent} />
+          <ActivityIndicator
+            size="large"
+            color={theme.accent}
+            accessible
+            accessibilityLabel="Loading to-dos"
+            accessibilityRole="progressbar"
+            accessibilityState={{ busy: true }}
+          />
         </View>
       );
     }
