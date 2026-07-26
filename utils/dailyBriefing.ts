@@ -2,7 +2,9 @@ import type { Note } from '@/contexts/NotesContext';
 import type { Todo } from '@/contexts/TodoContext';
 import { taskOccursOnDate } from './recurrence';
 
-const PREVIEW_LIMIT = 3;
+const TODAY_TODO_PREVIEW_LIMIT = 3;
+const OVERDUE_TODO_PREVIEW_LIMIT = 2;
+const TODAY_NOTE_PREVIEW_LIMIT = 2;
 const STORAGE_PREFIX = '@pjb_daily_briefing_viewed';
 
 export interface BriefingItemPreview {
@@ -18,6 +20,7 @@ export interface BriefingSection {
 
 export interface DailyBriefingContent {
   todos?: BriefingSection;
+  overdueTodos?: BriefingSection;
   notes?: BriefingSection;
 }
 
@@ -31,19 +34,36 @@ export function getGreeting(date = new Date(), firstName?: string): string {
   return firstName ? `${period}, ${firstName}` : `${period}!`;
 }
 
-export function createPreviewSection(items: BriefingItemPreview[]): BriefingSection | undefined {
+export function createPreviewSection(
+  items: BriefingItemPreview[],
+  limit: number,
+): BriefingSection | undefined {
   if (items.length === 0) return undefined;
 
   return {
     count: items.length,
-    items: items.slice(0, PREVIEW_LIMIT),
-    moreCount: Math.max(0, items.length - PREVIEW_LIMIT),
+    items: items.slice(0, limit),
+    moreCount: Math.max(0, items.length - limit),
   };
 }
 
 export function getTodayOpenTodos(todos: Todo[], today: string): BriefingItemPreview[] {
   return todos
     .filter((todo) => !todo.completed && taskOccursOnDate(todo, today))
+    .map((todo) => ({
+      id: todo.id,
+      title: todo.title.trim() || 'Untitled To-Do',
+    }));
+}
+
+export function getOverdueOpenTodos(todos: Todo[], today: string): BriefingItemPreview[] {
+  return todos
+    .filter((todo) => (
+      !todo.completed
+      && todo.recurrence === 'none'
+      && !!todo.dueDate
+      && todo.dueDate < today
+    ))
     .map((todo) => ({
       id: todo.id,
       title: todo.title.trim() || 'Untitled To-Do',
@@ -64,13 +84,15 @@ export function buildDailyBriefingContent(
   notes: Note[],
   today: string,
 ): DailyBriefingContent | null {
-  const todoSection = createPreviewSection(getTodayOpenTodos(todos, today));
-  const noteSection = createPreviewSection(getTodayDatedNotes(notes, today));
+  const todoSection = createPreviewSection(getTodayOpenTodos(todos, today), TODAY_TODO_PREVIEW_LIMIT);
+  const overdueTodoSection = createPreviewSection(getOverdueOpenTodos(todos, today), OVERDUE_TODO_PREVIEW_LIMIT);
+  const noteSection = createPreviewSection(getTodayDatedNotes(notes, today), TODAY_NOTE_PREVIEW_LIMIT);
 
-  if (!todoSection && !noteSection) return null;
+  if (!todoSection && !overdueTodoSection && !noteSection) return null;
 
   return {
     todos: todoSection,
+    overdueTodos: overdueTodoSection,
     notes: noteSection,
   };
 }
