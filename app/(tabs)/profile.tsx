@@ -387,6 +387,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
 
   /* Profile card */

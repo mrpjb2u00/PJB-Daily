@@ -323,49 +323,51 @@ export default function DateDetailsScreen() {
           },
         ]}
       >
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="chevron-back" size={26} color={theme.accent} />
-        </Pressable>
-
-        <View style={styles.headerCenter}>
-          <Text
-            style={[styles.dateTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
+        <View style={styles.headerContent}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
           >
-            {formatDate(date)}
-          </Text>
-          {!!countLabel && (
-            <Text
-              style={[styles.countLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
-            >
-              {countLabel}
-            </Text>
-          )}
-        </View>
+            <Ionicons name="chevron-back" size={26} color={theme.accent} />
+          </Pressable>
 
-        <Pressable
-          onPress={() => {
-            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setAddModal(true);
-          }}
-          hitSlop={12}
-          style={({ pressed }) => [
-            styles.addBtn,
-            { backgroundColor: theme.accent, opacity: pressed ? 0.8 : 1 },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel={`Add item for ${formatDateShort(date)}`}
-          accessibilityHint="Opens options to create a to-do or note"
-        >
-          <Ionicons name="add" size={20} color="#fff" />
-        </Pressable>
+          <View style={styles.headerCenter}>
+            <Text
+              style={[styles.dateTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {formatDate(date)}
+            </Text>
+            {!!countLabel && (
+              <Text
+                style={[styles.countLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}
+              >
+                {countLabel}
+              </Text>
+            )}
+          </View>
+
+          <Pressable
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setAddModal(true);
+            }}
+            hitSlop={12}
+            style={({ pressed }) => [
+              styles.addBtn,
+              { backgroundColor: theme.accent, opacity: pressed ? 0.8 : 1 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Add item for ${formatDateShort(date)}`}
+            accessibilityHint="Opens options to create a to-do or note"
+          >
+            <Ionicons name="add" size={20} color="#fff" />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -506,6 +508,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     gap: 10,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+  },
   backBtn: {
     width: 36,
     height: 36,
@@ -535,6 +545,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   itemSpacing: {
     marginBottom: 6,

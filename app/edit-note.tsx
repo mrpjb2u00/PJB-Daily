@@ -297,6 +297,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 14,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   headerBtn: {
     minWidth: 56,
@@ -331,6 +334,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 22,
     paddingTop: 22,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
 
   /* Title */

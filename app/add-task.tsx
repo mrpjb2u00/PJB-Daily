@@ -812,6 +812,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 20,
     gap: 0,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   sectionLabel: {
     fontSize: 11,
@@ -870,6 +873,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     padding: 14,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   datePickerHeader: {
     flexDirection: 'row',
