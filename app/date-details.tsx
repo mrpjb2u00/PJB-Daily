@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { SectionLabel } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
@@ -190,7 +191,13 @@ function SectionHeader({
   return (
     <View style={sectionHeaderStyles.row}>
       <View style={[sectionHeaderStyles.dot, { backgroundColor: color }]} />
-      <Text style={[sectionHeaderStyles.label, { color }]}>{label} ({count})</Text>
+      <SectionLabel
+        color={color}
+        style={sectionHeaderStyles.labelWrap}
+        textStyle={sectionHeaderStyles.label}
+      >
+        {`${label} (${count})`}
+      </SectionLabel>
     </View>
   );
 }
@@ -213,6 +220,10 @@ const sectionHeaderStyles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.9,
     textTransform: 'uppercase',
+  },
+  labelWrap: {
+    marginBottom: 0,
+    marginLeft: 0,
   },
 });
 

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SectionLabel } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getGreeting } from '@/utils/dailyBriefing';
 import type { BriefingSection, DailyBriefingContent } from '@/utils/dailyBriefing';
@@ -38,9 +39,13 @@ function BriefingSectionView({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <View style={[styles.sectionDot, { backgroundColor: color }]} />
-        <Text style={[styles.sectionTitle, { color, fontFamily: 'Inter_700Bold' }]}>
-          {title} - {section.count}
-        </Text>
+        <SectionLabel
+          color={color}
+          style={styles.sectionLabelWrap}
+          textStyle={styles.sectionTitle}
+        >
+          {`${title} - ${section.count}`}
+        </SectionLabel>
       </View>
       <View style={styles.itemList}>
         {section.items.map((item) => (
@@ -264,7 +269,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 11,
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.9,
+  },
+  sectionLabelWrap: {
+    marginBottom: 0,
+    marginLeft: 0,
   },
   itemList: {
     gap: 8,
