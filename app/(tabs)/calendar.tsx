@@ -313,6 +313,7 @@ export default function CalendarScreen() {
             >
               <Pressable
                 onPress={goToPrevMonth}
+                hitSlop={4}
                 style={({ pressed }) => [styles.navBtn, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.6 : 1 }]}
                 accessibilityRole="button"
                 accessibilityLabel="Previous month"
@@ -324,6 +325,7 @@ export default function CalendarScreen() {
               </Text>
               <Pressable
                 onPress={goToNextMonth}
+                hitSlop={4}
                 style={({ pressed }) => [styles.navBtn, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.6 : 1 }]}
                 accessibilityRole="button"
                 accessibilityLabel="Next month"

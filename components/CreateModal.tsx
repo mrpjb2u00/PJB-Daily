@@ -109,6 +109,7 @@ export default function CreateModal({
           <Pressable
             style={styles.cancelBtn}
             onPress={onClose}
+            hitSlop={{ top: 5, bottom: 5, left: 0, right: 0 }}
             accessibilityRole="button"
             accessibilityLabel="Cancel"
             accessibilityHint="Closes the create menu"

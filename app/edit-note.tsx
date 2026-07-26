@@ -226,7 +226,7 @@ export default function EditNoteScreen() {
                 <Pressable
                   style={[styles.metaChip, { backgroundColor: noteColor + '15', borderColor: noteColor + '35' }]}
                   onPress={handleClearDate}
-                  hitSlop={6}
+                  hitSlop={10}
                   accessibilityRole="button"
                   accessibilityLabel={`Remove note date, ${formatDateLabel(date)}`}
                 >

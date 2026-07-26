@@ -131,6 +131,7 @@ function DatePickerSheet({
           <View style={styles.datePickerHeader}>
             <Pressable
               onPress={goToPrevMonth}
+              hitSlop={6}
               style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
               accessibilityRole="button"
               accessibilityLabel="Previous month"
@@ -142,6 +143,7 @@ function DatePickerSheet({
             </Text>
             <Pressable
               onPress={goToNextMonth}
+              hitSlop={6}
               style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
               accessibilityRole="button"
               accessibilityLabel="Next month"
@@ -443,7 +445,7 @@ export default function AddTaskScreen() {
                   </Text>
                   <Pressable
                     onPress={handleClearDate}
-                    hitSlop={8}
+                    hitSlop={14}
                     accessibilityRole="button"
                     accessibilityLabel="Remove due date"
                   >
@@ -454,6 +456,7 @@ export default function AddTaskScreen() {
             ) : (
               <Pressable
                 onPress={openDatePicker}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                 style={({ pressed }) => [styles.emptyDateButton, { opacity: pressed ? 0.75 : 1 }]}
                 accessibilityRole="button"
                 accessibilityLabel="Add due date"
@@ -564,7 +567,7 @@ export default function AddTaskScreen() {
                 </Text>
                 <Pressable
                   onPress={() => handleRemoveSubtask(i)}
-                  hitSlop={10}
+                  hitSlop={14}
                   accessibilityRole="button"
                   accessibilityLabel={`Remove subtask ${sub.trim() || i + 1}`}
                 >
@@ -604,6 +607,7 @@ export default function AddTaskScreen() {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 setAddingSubtask(true);
               }}
+              hitSlop={{ top: 5, bottom: 5, left: 0, right: 0 }}
               accessibilityRole="button"
               accessibilityLabel="Add subtask"
             >
@@ -641,6 +645,7 @@ export default function AddTaskScreen() {
                         borderWidth: isActive ? 1.5 : 1,
                       },
                     ]}
+                    hitSlop={{ top: 8, bottom: 8, left: 0, right: 0 }}
                     accessibilityRole="radio"
                     accessibilityLabel={`${label} priority`}
                     accessibilityState={{ selected: isActive }}
