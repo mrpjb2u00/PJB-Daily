@@ -146,7 +146,14 @@ export default function EditNoteScreen() {
           { paddingTop: (Platform.OS === 'web' ? webTopInset : insets.top) + 10 },
         ]}
       >
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.headerBtn}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.headerBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Close note editor"
+          accessibilityHint="Closes the editor"
+        >
           <Ionicons name="close" size={22} color={theme.textSecondary} />
         </Pressable>
 
@@ -159,6 +166,9 @@ export default function EditNoteScreen() {
           disabled={!hasContent}
           hitSlop={12}
           style={styles.headerBtn}
+          accessibilityRole="button"
+          accessibilityLabel={isEditing ? 'Save note' : 'Create note'}
+          accessibilityState={{ disabled: !hasContent }}
         >
           <Text
             style={[
@@ -217,6 +227,8 @@ export default function EditNoteScreen() {
                   style={[styles.metaChip, { backgroundColor: noteColor + '15', borderColor: noteColor + '35' }]}
                   onPress={handleClearDate}
                   hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove note date, ${formatDateLabel(date)}`}
                 >
                   <Ionicons name="calendar-outline" size={13} color={noteColor} />
                   <Text style={[styles.metaChipText, { color: noteColor, fontFamily: 'Inter_600SemiBold' }]}>
@@ -225,7 +237,11 @@ export default function EditNoteScreen() {
                   <Ionicons name="close-circle" size={14} color={noteColor + 'CC'} />
                 </Pressable>
               ) : (
-                <View style={[styles.metaChip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View
+                  style={[styles.metaChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  accessibilityRole="text"
+                  accessibilityLabel="No date"
+                >
                   <Ionicons name="calendar-outline" size={13} color={theme.textTertiary} />
                   <Text style={[styles.metaChipText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
                     No date

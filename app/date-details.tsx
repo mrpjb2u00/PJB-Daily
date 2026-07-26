@@ -69,6 +69,14 @@ function ProgressCard({
           shadowColor: theme.shadow,
         },
       ]}
+      accessibilityRole="progressbar"
+      accessibilityLabel="Daily progress"
+      accessibilityValue={{
+        min: 0,
+        max: total,
+        now: completed,
+        text: total === 0 ? 'No tasks yet' : `${completed} of ${total} to-do${total !== 1 ? 's' : ''} complete`,
+      }}
     >
       <View style={progressStyles.ringWrap}>
         <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
@@ -319,6 +327,8 @@ export default function DateDetailsScreen() {
           onPress={() => router.back()}
           hitSlop={12}
           style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <Ionicons name="chevron-back" size={26} color={theme.accent} />
         </Pressable>
@@ -350,6 +360,9 @@ export default function DateDetailsScreen() {
             styles.addBtn,
             { backgroundColor: theme.accent, opacity: pressed ? 0.8 : 1 },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={`Add item for ${formatDateShort(date)}`}
+          accessibilityHint="Opens options to create a to-do or note"
         >
           <Ionicons name="add" size={20} color="#fff" />
         </Pressable>
@@ -381,6 +394,8 @@ export default function DateDetailsScreen() {
                   { backgroundColor: theme.accent, opacity: pressed ? 0.85 : 1 },
                 ]}
                 onPress={handleAddTodo}
+                accessibilityRole="button"
+                accessibilityLabel={`Add to-do for ${formatDateShort(date)}`}
               >
                 <Ionicons name="checkmark-circle" size={18} color="#fff" />
                 <Text style={[styles.emptyBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>
@@ -393,6 +408,8 @@ export default function DateDetailsScreen() {
                   { backgroundColor: theme.accentSecondary, opacity: pressed ? 0.85 : 1 },
                 ]}
                 onPress={handleAddNote}
+                accessibilityRole="button"
+                accessibilityLabel={`Add note for ${formatDateShort(date)}`}
               >
                 <Ionicons name="document-text" size={18} color="#fff" />
                 <Text style={[styles.emptyBtnText, { color: '#fff', fontFamily: 'Inter_600SemiBold' }]}>

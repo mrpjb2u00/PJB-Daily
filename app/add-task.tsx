@@ -118,12 +118,22 @@ function DatePickerSheet({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.datePickerOverlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={[styles.datePickerCard, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={false}
+          importantForAccessibility="no"
+        />
+        <View
+          style={[styles.datePickerCard, { backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}
+          accessibilityViewIsModal
+        >
           <View style={styles.datePickerHeader}>
             <Pressable
               onPress={goToPrevMonth}
               style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Previous month"
             >
               <Ionicons name="chevron-back" size={18} color={theme.text} />
             </Pressable>
@@ -133,6 +143,8 @@ function DatePickerSheet({
             <Pressable
               onPress={goToNextMonth}
               style={({ pressed }) => [styles.datePickerNav, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.7 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Next month"
             >
               <Ionicons name="chevron-forward" size={18} color={theme.text} />
             </Pressable>
@@ -148,10 +160,20 @@ function DatePickerSheet({
 
           <View style={styles.datePickerGrid}>
             {cells.map((day, index) => {
-              if (!day) return <View key={`empty-${index}`} style={styles.datePickerCell} />;
+              if (!day) {
+                return (
+                  <View
+                    key={`empty-${index}`}
+                    style={styles.datePickerCell}
+                    accessible={false}
+                    importantForAccessibility="no"
+                  />
+                );
+              }
               const dateStr = formatCalendarDate(viewYear, viewMonth, day);
               const isSelected = dateStr === selectedDate;
               const isToday = dateStr === today;
+              const dateAccessibilityLabel = `${isToday ? 'Today, ' : ''}${formatDateLabel(dateStr)}.${isSelected ? ' Selected.' : ''}`;
               return (
                 <Pressable
                   key={dateStr}
@@ -160,6 +182,9 @@ function DatePickerSheet({
                     styles.datePickerCell,
                     pressed && { opacity: 0.75 },
                   ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={dateAccessibilityLabel}
+                  accessibilityState={isSelected ? { selected: true } : undefined}
                 >
                   <View
                     style={[
@@ -343,7 +368,13 @@ export default function AddTaskScreen() {
           headerTintColor: theme.text,
           headerTitleAlign: 'center',
           headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={12} style={styles.cancelBtn}>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={styles.cancelBtn}
+              accessibilityRole="button"
+              accessibilityLabel={isEditing ? 'Cancel editing task' : 'Cancel new task'}
+            >
               <Text style={[styles.cancelText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
                 Cancel
               </Text>
@@ -403,12 +434,19 @@ export default function AddTaskScreen() {
                       opacity: pressed ? 0.75 : 1,
                     },
                   ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Change due date, ${formatDateLabel(dueDate)}`}
                 >
                   <Ionicons name="calendar" size={14} color={theme.accent} />
                   <Text style={[styles.dateText, { color: theme.accent, fontFamily: 'Inter_600SemiBold' }]}>
                     {formatDateLabel(dueDate)}
                   </Text>
-                  <Pressable onPress={handleClearDate} hitSlop={8}>
+                  <Pressable
+                    onPress={handleClearDate}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove due date"
+                  >
                     <Ionicons name="close-circle" size={16} color={theme.accent} />
                   </Pressable>
                 </Pressable>
@@ -417,6 +455,8 @@ export default function AddTaskScreen() {
               <Pressable
                 onPress={openDatePicker}
                 style={({ pressed }) => [styles.emptyDateButton, { opacity: pressed ? 0.75 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Add due date"
               >
                 <Ionicons name="calendar-outline" size={16} color={theme.textTertiary} />
                 <Text style={[styles.emptyFieldText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
@@ -451,6 +491,9 @@ export default function AddTaskScreen() {
                         borderColor: isActive ? theme.accent : theme.border,
                       },
                     ]}
+                    accessibilityRole="radio"
+                    accessibilityLabel={RECURRENCE_LABELS[opt]}
+                    accessibilityState={{ selected: isActive }}
                   >
                     <Text
                       style={[
@@ -519,7 +562,12 @@ export default function AddTaskScreen() {
                 <Text style={[styles.subtaskText, { color: theme.text, fontFamily: 'Inter_400Regular' }]} numberOfLines={2}>
                   {sub}
                 </Text>
-                <Pressable onPress={() => handleRemoveSubtask(i)} hitSlop={10}>
+                <Pressable
+                  onPress={() => handleRemoveSubtask(i)}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove subtask ${sub.trim() || i + 1}`}
+                >
                   <Ionicons name="close" size={16} color={theme.textTertiary} />
                 </Pressable>
               </View>
@@ -556,6 +604,8 @@ export default function AddTaskScreen() {
                 if (Platform.OS !== 'web') Haptics.selectionAsync();
                 setAddingSubtask(true);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Add subtask"
             >
               <Ionicons name="add" size={17} color={theme.accent} />
               <Text style={[styles.addSubtaskText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
@@ -591,6 +641,9 @@ export default function AddTaskScreen() {
                         borderWidth: isActive ? 1.5 : 1,
                       },
                     ]}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${label} priority`}
+                    accessibilityState={{ selected: isActive }}
                   >
                     <Ionicons
                       name={icon as any}
@@ -629,7 +682,14 @@ export default function AddTaskScreen() {
           {/* ── SHARING ── */}
           <SectionLabel label="SHARING" theme={theme} />
           <View style={[styles.card, { backgroundColor: cardBg, borderColor: theme.border }]}>
-            <Pressable style={[styles.optionRow, { opacity: 0.45 }]} onPress={handleComingSoon}>
+            <Pressable
+              style={[styles.optionRow, { opacity: 0.45 }]}
+              onPress={handleComingSoon}
+              accessibilityRole="button"
+              accessibilityLabel="Share this task, coming soon"
+              accessibilityHint="Shows a coming soon message"
+              accessibilityState={{ disabled: true }}
+            >
               <Ionicons name="people-outline" size={18} color={theme.textSecondary} />
               <Text style={[styles.optionRowLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
                 Share this task
@@ -644,7 +704,14 @@ export default function AddTaskScreen() {
 
             <View style={[styles.optionDivider, { backgroundColor: theme.border }]} />
 
-            <Pressable style={[styles.optionRow, { opacity: 0.45 }]} onPress={handleComingSoon}>
+            <Pressable
+              style={[styles.optionRow, { opacity: 0.45 }]}
+              onPress={handleComingSoon}
+              accessibilityRole="button"
+              accessibilityLabel="Allow edits, coming soon"
+              accessibilityHint="Shows a coming soon message"
+              accessibilityState={{ disabled: true }}
+            >
               <Ionicons name="pencil-outline" size={18} color={theme.textSecondary} />
               <Text style={[styles.optionRowLabel, { color: theme.textSecondary, fontFamily: 'Inter_500Medium' }]}>
                 Allow edits
@@ -676,6 +743,9 @@ export default function AddTaskScreen() {
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={isEditing ? 'Update task' : 'Add task'}
+            accessibilityState={{ disabled: !text.trim() }}
           >
             <Ionicons name="checkmark" size={22} color={text.trim() ? '#fff' : theme.accent + 'AA'} />
             <Text

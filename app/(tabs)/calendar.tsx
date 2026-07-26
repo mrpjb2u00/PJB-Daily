@@ -129,6 +129,28 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
+function formatDayAccessibilityLabel({
+  cell,
+  isSelected,
+  isToday,
+  noteCount,
+  todoCount,
+}: {
+  cell: CalendarCellData;
+  isSelected: boolean;
+  isToday: boolean;
+  noteCount: number;
+  todoCount: number;
+}): string {
+  const parts = [
+    `${isToday ? 'Today, ' : ''}${MONTH_NAMES[cell.month]} ${cell.day}, ${cell.year}.`,
+    isSelected ? 'Selected.' : '',
+    todoCount > 0 ? `${todoCount} ${todoCount === 1 ? 'to-do' : 'to-dos'}.` : '',
+    noteCount > 0 ? `${noteCount} ${noteCount === 1 ? 'note' : 'notes'}.` : '',
+  ];
+  return parts.filter(Boolean).join(' ');
+}
+
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -292,6 +314,8 @@ export default function CalendarScreen() {
               <Pressable
                 onPress={goToPrevMonth}
                 style={({ pressed }) => [styles.navBtn, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.6 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Previous month"
               >
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </Pressable>
@@ -301,6 +325,8 @@ export default function CalendarScreen() {
               <Pressable
                 onPress={goToNextMonth}
                 style={({ pressed }) => [styles.navBtn, { backgroundColor: theme.surfaceSecondary, opacity: pressed ? 0.6 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Next month"
               >
                 <Ionicons name="chevron-forward" size={20} color={theme.text} />
               </Pressable>
@@ -324,15 +350,25 @@ export default function CalendarScreen() {
                 const isSelected = cell.dateStr === selectedDate;
                 const isToday = cell.dateStr === today;
                 const cellItems = getItemsForCell(cell);
+                const todoCount = cellItems.filter((item) => item.type === 'todo').length;
+                const noteCount = cellItems.filter((item) => item.type === 'note').length;
                 const visibleItems = cellItems.slice(0, maxVisible);
                 const extraCount = cellItems.length - maxVisible;
+                const dayAccessibilityLabel = formatDayAccessibilityLabel({
+                  cell,
+                  isSelected,
+                  isToday,
+                  noteCount,
+                  todoCount,
+                });
 
                 return (
                   <Pressable
                     key={cell.key}
                     onPress={() => handleDayPress(cell)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${MONTH_NAMES[cell.month]} ${cell.day}, ${cell.year}`}
+                    accessibilityLabel={dayAccessibilityLabel}
+                    accessibilityState={isSelected ? { selected: true } : undefined}
                     style={({ pressed }) => [
                       styles.dayCell,
                       {
@@ -403,6 +439,8 @@ export default function CalendarScreen() {
                       return (
                         <View
                           key={`${item.type}-${item.id}`}
+                          accessible={false}
+                          importantForAccessibility="no-hide-descendants"
                           style={[
                             styles.taskPill,
                             {
@@ -433,6 +471,8 @@ export default function CalendarScreen() {
 
                     {extraCount > 0 && (
                       <Text
+                        accessible={false}
+                        importantForAccessibility="no"
                         style={[
                           styles.moreText,
                           {

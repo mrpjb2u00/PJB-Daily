@@ -24,6 +24,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function NoteCard({ item, accentColor, onEdit, onDelete }: NoteCardProps) {
   const { theme } = useTheme();
   const color = accentColor ?? theme.accentSecondary;
+  const noteTitle = item.title.trim() || 'Untitled note';
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -58,6 +59,9 @@ export default function NoteCard({ item, accentColor, onEdit, onDelete }: NoteCa
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={handleEdit}
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${noteTitle}`}
+        accessibilityHint="Opens this note for editing"
       >
         <View style={[styles.iconWrap, { backgroundColor: color + '1A' }]}>
           <Ionicons name="document-text" size={16} color={color} />
@@ -85,6 +89,8 @@ export default function NoteCard({ item, accentColor, onEdit, onDelete }: NoteCa
             onPress={handleEdit}
             hitSlop={8}
             style={styles.actionBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${noteTitle}`}
           >
             <Feather name="edit-2" size={16} color={theme.textTertiary} />
           </Pressable>
@@ -95,6 +101,9 @@ export default function NoteCard({ item, accentColor, onEdit, onDelete }: NoteCa
             }}
             hitSlop={8}
             style={styles.actionBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${noteTitle}`}
+            accessibilityHint="Deletes this note"
           >
             <Feather name="trash-2" size={16} color={theme.destructive} />
           </Pressable>

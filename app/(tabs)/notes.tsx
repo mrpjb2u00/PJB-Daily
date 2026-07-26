@@ -20,6 +20,7 @@ import { useNotes, Note } from '@/contexts/NotesContext';
 
 function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void; onDelete: () => void }) {
   const { theme } = useTheme();
+  const noteTitle = note.title.trim() || 'Untitled note';
 
   const dateStr = new Date(note.updatedAt).toLocaleDateString(undefined, {
     month: 'short',
@@ -40,6 +41,9 @@ function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${noteTitle}`}
+      accessibilityHint="Opens this note for editing"
     >
       <View style={styles.noteContent}>
         <Text
@@ -67,6 +71,9 @@ function NoteCard({ note, onPress, onDelete }: { note: Note; onPress: () => void
         }}
         hitSlop={8}
         style={styles.deleteBtn}
+        accessibilityRole="button"
+        accessibilityLabel={`Delete ${noteTitle}`}
+        accessibilityHint="Deletes this note"
       >
         <Feather name="trash-2" size={16} color={theme.destructive} />
       </Pressable>

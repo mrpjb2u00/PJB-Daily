@@ -18,6 +18,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
+  const taskTitle = item.title.trim() || 'Untitled task';
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -52,8 +53,17 @@ export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemP
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={handleToggle}
+        accessible={false}
       >
-        <Pressable onPress={handleToggle} hitSlop={8} style={styles.checkArea}>
+        <Pressable
+          onPress={handleToggle}
+          hitSlop={8}
+          style={styles.checkArea}
+          accessibilityRole="checkbox"
+          accessibilityLabel={item.completed ? `Mark ${taskTitle} incomplete` : `Mark ${taskTitle} complete`}
+          accessibilityState={{ checked: item.completed }}
+          accessibilityHint="Double tap to toggle completion"
+        >
           <View
             style={[
               styles.checkbox,
@@ -106,6 +116,8 @@ export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemP
             }}
             hitSlop={8}
             style={styles.actionBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${taskTitle}`}
           >
             <Feather name="edit-2" size={16} color={theme.textTertiary} />
           </Pressable>
@@ -116,6 +128,9 @@ export default function TodoItem({ item, onToggle, onEdit, onDelete }: TodoItemP
             }}
             hitSlop={8}
             style={styles.actionBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${taskTitle}`}
+            accessibilityHint="Deletes this task"
           >
             <Feather name="trash-2" size={16} color={theme.destructive} />
           </Pressable>

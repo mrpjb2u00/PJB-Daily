@@ -25,10 +25,17 @@ export default function CreateModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={onClose}
+        accessible={false}
+        importantForAccessibility="no"
+      >
         <View
           style={[styles.sheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
           onStartShouldSetResponder={() => true}
+          accessibilityViewIsModal
+          accessibilityLabel="Create New"
         >
           <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
 
@@ -52,6 +59,9 @@ export default function CreateModal({
                 },
               ]}
               onPress={onCreateTodo}
+              accessibilityRole="button"
+              accessibilityLabel="Create To-Do"
+              accessibilityHint="Opens the task editor"
             >
               <View style={[styles.cardIcon, { backgroundColor: theme.accent }]}>
                 <Ionicons name="checkmark-circle" size={22} color="#fff" />
@@ -77,6 +87,9 @@ export default function CreateModal({
                 },
               ]}
               onPress={onCreateNote}
+              accessibilityRole="button"
+              accessibilityLabel="Create Note"
+              accessibilityHint="Opens the note editor"
             >
               <View style={[styles.cardIcon, { backgroundColor: theme.accentSecondary }]}>
                 <Ionicons name="document-text" size={22} color="#fff" />
@@ -93,7 +106,13 @@ export default function CreateModal({
             </Pressable>
           </View>
 
-          <Pressable style={styles.cancelBtn} onPress={onClose}>
+          <Pressable
+            style={styles.cancelBtn}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            accessibilityHint="Closes the create menu"
+          >
             <Text style={[styles.cancelText, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
               Cancel
             </Text>
