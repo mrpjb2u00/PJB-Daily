@@ -145,15 +145,23 @@ export default function DailyBriefingModal({
           >
             {content.todos && (
               <BriefingSectionView
-                title="TODAY'S TO-DOS"
+                title="DUE TODAY"
                 color={theme.accent}
                 section={content.todos}
                 textColor={theme.text}
               />
             )}
+            {content.overdueTodos && (
+              <BriefingSectionView
+                title="OVERDUE"
+                color={theme.destructive}
+                section={content.overdueTodos}
+                textColor={theme.text}
+              />
+            )}
             {content.notes && (
               <BriefingSectionView
-                title="TODAY'S NOTES"
+                title="NOTES FOR TODAY"
                 color={theme.accentSecondary}
                 section={content.notes}
                 textColor={theme.text}
