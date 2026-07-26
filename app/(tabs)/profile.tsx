@@ -165,6 +165,7 @@ export default function ProfileScreen() {
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
+            autoComplete="username"
           />
 
           <View style={styles.birthdayGroup}>
@@ -231,12 +232,18 @@ export default function ProfileScreen() {
           </View>
 
           {!!profileError && (
-            <Text style={[styles.feedbackText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[styles.feedbackText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+            >
               {profileError}
             </Text>
           )}
           {!!profileMessage && (
-            <Text style={[styles.feedbackText, { color: theme.success, fontFamily: 'Inter_500Medium' }]}>
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[styles.feedbackText, { color: theme.success, fontFamily: 'Inter_500Medium' }]}
+            >
               {profileMessage}
             </Text>
           )}
@@ -246,6 +253,7 @@ export default function ProfileScreen() {
             disabled={profileSubmitting}
             accessibilityRole="button"
             accessibilityLabel="Save Personal Information"
+            accessibilityState={{ disabled: profileSubmitting }}
             style={({ pressed }) => [
               styles.saveButton,
               {

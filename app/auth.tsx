@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -53,6 +53,10 @@ export default function AuthScreen() {
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
   const [resetSubmitting, setResetSubmitting] = useState(false);
+  const firstNameInputRef = useRef<TextInput>(null);
+  const usernameInputRef = useRef<TextInput>(null);
+  const emailInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInput>(null);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
 
@@ -82,6 +86,7 @@ export default function AuthScreen() {
   };
 
   const handleResetPassword = async () => {
+    if (resetSubmitting) return;
     if (!supabaseConfigured) {
       setResetError('Authentication service is not configured. Please contact the app administrator.');
       return;
@@ -105,6 +110,7 @@ export default function AuthScreen() {
   };
 
   const handleSubmit = async () => {
+    if (submitting || !canSubmit) return;
     setError('');
     setSubmitting(true);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -128,8 +134,8 @@ export default function AuthScreen() {
   };
 
   const canSubmit = isLogin
-    ? email.trim() && password
-    : firstName.trim() && username.trim() && email.trim() && password;
+    ? Boolean(email.trim() && password)
+    : Boolean(firstName.trim() && username.trim() && email.trim() && password);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -233,6 +239,9 @@ export default function AuthScreen() {
                   autoCapitalize="words"
                   autoCorrect={false}
                   textContentType="givenName"
+                  ref={firstNameInputRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => usernameInputRef.current?.focus()}
                 />
 
                 <TextInput
@@ -251,6 +260,11 @@ export default function AuthScreen() {
                   onChangeText={setUsername}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  autoComplete="username"
+                  textContentType="username"
+                  ref={usernameInputRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailInputRef.current?.focus()}
                 />
 
                 <View style={styles.birthdayGroup}>
@@ -317,6 +331,10 @@ export default function AuthScreen() {
               autoCorrect={false}
               keyboardType="email-address"
               textContentType="emailAddress"
+              autoComplete="email"
+              ref={emailInputRef}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
             />
 
             <TextInput
@@ -334,10 +352,20 @@ export default function AuthScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              textContentType={isLogin ? 'password' : 'newPassword'}
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
+              ref={passwordInputRef}
+              returnKeyType={isLogin ? 'go' : 'done'}
+              onSubmitEditing={() => {
+                if (canSubmit && !submitting) handleSubmit();
+              }}
             />
 
             {!!error && (
-              <Text style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+              <Text
+                accessibilityLiveRegion="polite"
+                style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+              >
                 {error}
               </Text>
             )}
@@ -345,6 +373,7 @@ export default function AuthScreen() {
             <Pressable
               onPress={handleSubmit}
               disabled={submitting || !canSubmit}
+              accessibilityState={{ disabled: submitting || !canSubmit }}
               style={({ pressed }) => [
                 styles.submitBtn,
                 {
@@ -427,16 +456,27 @@ export default function AuthScreen() {
                 autoCorrect={false}
                 keyboardType="email-address"
                 textContentType="emailAddress"
+                autoComplete="email"
+                returnKeyType="send"
+                onSubmitEditing={() => {
+                  if (resetEmail.trim() && !resetSubmitting) handleResetPassword();
+                }}
               />
 
               {!!resetError && (
-                <Text style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}>
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[styles.errorText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+                >
                   {resetError}
                 </Text>
               )}
 
               {!!resetMessage && (
-                <Text style={[styles.successText, { color: '#34C759', fontFamily: 'Inter_500Medium' }]}>
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[styles.successText, { color: '#34C759', fontFamily: 'Inter_500Medium' }]}
+                >
                   {resetMessage}
                 </Text>
               )}
@@ -444,6 +484,7 @@ export default function AuthScreen() {
               <Pressable
                 onPress={handleResetPassword}
                 disabled={resetSubmitting || !resetEmail.trim()}
+                accessibilityState={{ disabled: resetSubmitting || !resetEmail.trim() }}
                 style={({ pressed }) => [
                   styles.submitBtn,
                   {
