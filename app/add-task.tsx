@@ -390,7 +390,11 @@ export default function AddTaskScreen() {
         keyboardVerticalOffset={0}
       >
         {draftRestored && (
-          <View style={[styles.draftBanner, { backgroundColor: theme.accent + '15', borderBottomColor: theme.accent + '30' }]}>
+          <View
+            accessible
+            accessibilityLiveRegion="polite"
+            style={[styles.draftBanner, { backgroundColor: theme.accent + '15', borderBottomColor: theme.accent + '30' }]}
+          >
             <Ionicons name="document-text-outline" size={14} color={theme.accent} />
             <Text style={[styles.draftBannerText, { color: theme.accent, fontFamily: 'Inter_500Medium' }]}>
               Draft restored

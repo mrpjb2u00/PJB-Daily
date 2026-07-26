@@ -183,7 +183,11 @@ export default function EditNoteScreen() {
 
       {/* ── Draft restored banner ── */}
       {draftRestored && (
-        <View style={[styles.draftBanner, { backgroundColor: noteColor + '15', borderBottomColor: noteColor + '25' }]}>
+        <View
+          accessible
+          accessibilityLiveRegion="polite"
+          style={[styles.draftBanner, { backgroundColor: noteColor + '15', borderBottomColor: noteColor + '25' }]}
+        >
           <Ionicons name="document-text-outline" size={13} color={noteColor} />
           <Text style={[styles.draftBannerText, { color: noteColor, fontFamily: 'Inter_500Medium' }]}>
             Draft restored
