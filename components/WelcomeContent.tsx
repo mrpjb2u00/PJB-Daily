@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeToggle } from '@/components/ui';
+import { Breakpoints } from '@/constants/design';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const logoPreview = require('../assets/branding/logo-v1-preview.png');
@@ -33,10 +35,12 @@ function FeatureRow({ icon, text, theme }: { icon: any; text: string; theme: any
 
 export default function WelcomeContent() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { theme, isDark } = useTheme();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
+  const isLargeScreen = width >= Breakpoints.tablet;
 
   const handleGetStarted = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -102,7 +106,7 @@ export default function WelcomeContent() {
           <FeatureRow icon="document-text-outline" text="Capture quick notes" theme={theme} />
         </View>
 
-        <View style={{ flex: 1 }} />
+        <View style={isLargeScreen ? styles.tabletSpacer : styles.phoneSpacer} />
 
         <View style={styles.bottomSection}>
           <Pressable
@@ -194,6 +198,12 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 16,
     flex: 1,
+  },
+  phoneSpacer: {
+    flex: 1,
+  },
+  tabletSpacer: {
+    flex: 0.7,
   },
   bottomSection: {
     width: '100%',
