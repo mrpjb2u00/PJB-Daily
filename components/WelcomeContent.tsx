@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeToggle } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const logoPreview = require('../assets/branding/logo-v1-preview.png');
@@ -32,7 +33,7 @@ function FeatureRow({ icon, text, theme }: { icon: any; text: string; theme: any
 
 export default function WelcomeContent() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
@@ -57,22 +58,14 @@ export default function WelcomeContent() {
         end={{ x: 1, y: 1 }}
       />
 
-      <Pressable
-        onPress={toggleTheme}
+      <ThemeToggle
         style={[
           styles.themeBtn,
           {
             top: (Platform.OS === 'web' ? webTopInset : insets.top) + 12,
-            backgroundColor: theme.surfaceSecondary,
           },
         ]}
-      >
-        <Ionicons
-          name={isDark ? 'sunny' : 'moon'}
-          size={18}
-          color={isDark ? theme.gradientEnd : theme.gradientStart}
-        />
-      </Pressable>
+      />
 
       <View
         style={[

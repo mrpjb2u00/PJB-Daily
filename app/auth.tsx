@@ -15,10 +15,10 @@ import {
 import { router, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeToggle } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
@@ -37,7 +37,7 @@ function friendlyResetError(message: string): string {
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user, isLoading, login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [firstName, setFirstName] = useState('');
@@ -135,22 +135,14 @@ export default function AuthScreen() {
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      <Pressable
-        onPress={toggleTheme}
+      <ThemeToggle
         style={[
           styles.themeBtn,
           {
             top: (Platform.OS === 'web' ? webTopInset : insets.top) + 12,
-            backgroundColor: theme.surfaceSecondary,
           },
         ]}
-      >
-        <Ionicons
-          name={isDark ? 'sunny' : 'moon'}
-          size={18}
-          color={isDark ? theme.gradientEnd : theme.gradientStart}
-        />
-      </Pressable>
+      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
