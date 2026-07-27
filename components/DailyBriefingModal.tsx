@@ -13,8 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SectionLabel } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
+import { formatCalendarDateLabel } from '@/utils/date';
 import { getGreeting } from '@/utils/dailyBriefing';
-import type { BriefingSection, DailyBriefingContent } from '@/utils/dailyBriefing';
+import type { BriefingItemPreview, BriefingSection, DailyBriefingContent } from '@/utils/dailyBriefing';
 
 interface DailyBriefingModalProps {
   visible: boolean;
@@ -29,12 +30,25 @@ function BriefingSectionView({
   color,
   section,
   textColor,
+  showDueDate = false,
 }: {
   title: string;
   color: string;
   section: BriefingSection;
   textColor: string;
+  showDueDate?: boolean;
 }) {
+  function getItemTitle(item: BriefingItemPreview): string {
+    if (!showDueDate || !item.dueDate) return item.title;
+
+    const dueDate = formatCalendarDateLabel(item.dueDate, {
+      month: 'short',
+      day: 'numeric',
+    });
+
+    return dueDate ? `${dueDate} - ${item.title}` : item.title;
+  }
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -52,7 +66,7 @@ function BriefingSectionView({
           <View key={item.id} style={styles.itemRow}>
             <View style={[styles.itemBullet, { backgroundColor: color }]} />
             <Text style={[styles.itemText, { color: textColor, fontFamily: 'Inter_500Medium' }]} numberOfLines={1}>
-              {item.title}
+              {getItemTitle(item)}
             </Text>
           </View>
         ))}
@@ -157,6 +171,7 @@ export default function DailyBriefingModal({
                 color={theme.destructive}
                 section={content.overdueTodos}
                 textColor={theme.text}
+                showDueDate
               />
             )}
             {content.notes && (

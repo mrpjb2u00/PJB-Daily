@@ -27,8 +27,9 @@ export function useDailyBriefing(): DailyBriefingState {
   const { todos, isLoading: todosLoading } = useTodos();
   const { notes, isLoading: notesLoading } = useNotes();
   const [visible, setVisible] = useState(false);
+  const [checkedStorageKey, setCheckedStorageKey] = useState<string | null>(null);
   const viewedKeysRef = useRef<Set<string>>(new Set());
-  const pendingKeyRef = useRef<string | null>(null);
+  const visibleStorageKeyRef = useRef<string | null>(null);
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const today = getLocalTodayDateString();
@@ -40,36 +41,52 @@ export function useDailyBriefing(): DailyBriefingState {
 
   const storageKey = user ? getDailyBriefingStorageKey(user.id, today) : null;
 
-  const markViewed = useCallback(async () => {
-    if (!storageKey) return;
-    viewedKeysRef.current.add(storageKey);
-    await AsyncStorage.setItem(storageKey, 'true');
-  }, [storageKey]);
+  const markViewedKey = useCallback((key: string) => {
+    if (viewedKeysRef.current.has(key)) return;
+    viewedKeysRef.current.add(key);
+    AsyncStorage.setItem(key, 'true');
+  }, []);
 
   useEffect(() => {
-    if (authLoading || todosLoading || notesLoading || !user || !content || !storageKey) return;
-    if (visible || viewedKeysRef.current.has(storageKey) || pendingKeyRef.current === storageKey) return;
+    setCheckedStorageKey(null);
+
+    if (!storageKey) return;
+
+    if (viewedKeysRef.current.has(storageKey)) {
+      setCheckedStorageKey(storageKey);
+      return;
+    }
 
     let cancelled = false;
-    pendingKeyRef.current = storageKey;
 
     AsyncStorage.getItem(storageKey).then((stored) => {
       if (cancelled) return;
       if (stored === 'true') {
         viewedKeysRef.current.add(storageKey);
-        pendingKeyRef.current = null;
-        return;
       }
 
-      showTimerRef.current = setTimeout(() => {
-        if (cancelled) return;
-        setVisible(true);
-        viewedKeysRef.current.add(storageKey);
-        AsyncStorage.setItem(storageKey, 'true');
-        pendingKeyRef.current = null;
-        showTimerRef.current = null;
-      }, SHOW_DELAY_MS);
+      setCheckedStorageKey(storageKey);
     });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (authLoading || todosLoading || notesLoading || !user || !content || !storageKey) return;
+    if (checkedStorageKey !== storageKey) return;
+    if (visible || viewedKeysRef.current.has(storageKey)) return;
+
+    let cancelled = false;
+
+    showTimerRef.current = setTimeout(() => {
+      if (cancelled) return;
+      visibleStorageKeyRef.current = storageKey;
+      setVisible(true);
+      markViewedKey(storageKey);
+      showTimerRef.current = null;
+    }, SHOW_DELAY_MS);
 
     return () => {
       cancelled = true;
@@ -77,20 +94,23 @@ export function useDailyBriefing(): DailyBriefingState {
         clearTimeout(showTimerRef.current);
         showTimerRef.current = null;
       }
-      if (pendingKeyRef.current === storageKey) pendingKeyRef.current = null;
     };
-  }, [authLoading, todosLoading, notesLoading, user, content, storageKey, visible]);
+  }, [authLoading, checkedStorageKey, content, markViewedKey, notesLoading, storageKey, todosLoading, user, visible]);
 
   const dismiss = useCallback(() => {
     setVisible(false);
-    markViewed();
-  }, [markViewed]);
+    const viewedKey = visibleStorageKeyRef.current ?? storageKey;
+    visibleStorageKeyRef.current = null;
+    if (viewedKey) markViewedKey(viewedKey);
+  }, [markViewedKey, storageKey]);
 
   const openMyDay = useCallback(() => {
     setVisible(false);
-    markViewed();
+    const viewedKey = visibleStorageKeyRef.current ?? storageKey;
+    visibleStorageKeyRef.current = null;
+    if (viewedKey) markViewedKey(viewedKey);
     router.push({ pathname: '/date-details', params: { date: today } });
-  }, [markViewed, today]);
+  }, [markViewedKey, storageKey, today]);
 
   return {
     visible,

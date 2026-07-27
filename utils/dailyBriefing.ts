@@ -10,6 +10,7 @@ const STORAGE_PREFIX = '@pjb_daily_briefing_viewed';
 export interface BriefingItemPreview {
   id: string;
   title: string;
+  dueDate?: string;
 }
 
 export interface BriefingSection {
@@ -67,6 +68,7 @@ export function getOverdueOpenTodos(todos: Todo[], today: string): BriefingItemP
     .map((todo) => ({
       id: todo.id,
       title: todo.title.trim() || 'Untitled To-Do',
+      dueDate: todo.dueDate,
     }));
 }
 
