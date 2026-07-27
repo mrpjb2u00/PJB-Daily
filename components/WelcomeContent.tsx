@@ -20,11 +20,27 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 const logoPreview = require('../assets/branding/logo-v1-preview.png');
 
-function FeatureRow({ icon, text, theme }: { icon: any; text: string; theme: any }) {
+function FeatureRow({
+  icon,
+  text,
+  theme,
+  isLargeScreen,
+}: {
+  icon: any;
+  text: string;
+  theme: any;
+  isLargeScreen: boolean;
+}) {
   return (
     <View style={styles.featureRow}>
-      <View style={[styles.featureIcon, { backgroundColor: theme.surfaceSecondary }]}>
-        <Ionicons name={icon} size={20} color={theme.accent} />
+      <View
+        style={[
+          styles.featureIcon,
+          isLargeScreen && styles.tabletFeatureIcon,
+          { backgroundColor: theme.surfaceSecondary },
+        ]}
+      >
+        <Ionicons name={icon} size={isLargeScreen ? 22 : 20} color={theme.accent} />
       </View>
       <Text style={[styles.featureText, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
         {text}
@@ -100,10 +116,25 @@ export default function WelcomeContent() {
           Plan • Organize • Accomplish
         </Text>
 
-        <View style={styles.featureList}>
-          <FeatureRow icon="checkbox-outline" text="Organize your tasks" theme={theme} />
-          <FeatureRow icon="repeat-outline" text="Set recurring reminders" theme={theme} />
-          <FeatureRow icon="document-text-outline" text="Capture quick notes" theme={theme} />
+        <View style={[styles.featureList, isLargeScreen && styles.tabletFeatureList]}>
+          <FeatureRow
+            icon="checkbox-outline"
+            text="Organize your tasks"
+            theme={theme}
+            isLargeScreen={isLargeScreen}
+          />
+          <FeatureRow
+            icon="repeat-outline"
+            text="Set recurring reminders"
+            theme={theme}
+            isLargeScreen={isLargeScreen}
+          />
+          <FeatureRow
+            icon="document-text-outline"
+            text="Capture quick notes"
+            theme={theme}
+            isLargeScreen={isLargeScreen}
+          />
         </View>
 
         <View style={isLargeScreen ? styles.tabletSpacer : styles.phoneSpacer} />
@@ -183,6 +214,9 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     gap: 18,
   },
+  tabletFeatureList: {
+    maxWidth: 380,
+  },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -195,6 +229,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tabletFeatureIcon: {
+    width: 44,
+    height: 44,
+  },
   featureText: {
     fontSize: 16,
     flex: 1,
@@ -203,7 +241,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabletSpacer: {
-    flex: 0.7,
+    flexGrow: 0.45,
+    flexShrink: 1,
+    height: 36,
+    maxHeight: 64,
   },
   bottomSection: {
     width: '100%',
