@@ -6,13 +6,13 @@ For full detail, see [Database Audit Report](./DATABASE_AUDIT_REPORT.md).
 
 ## Tables
 
-Verified live tables:
+Verified live tables before Phase 7.2:
 
 - `public.profiles`
 - `public.todos`
 - `public.notes`
 
-No related public owner, admin, analytics, telemetry, activity, or deletion tables currently exist.
+No related public owner, admin, analytics, telemetry, activity, or deletion tables existed during the Phase 7.1 audit.
 
 ## public.profiles
 
@@ -92,6 +92,45 @@ Foreign key:
 - `notes.user_id` references `auth.users.id`
 - `ON DELETE CASCADE`
 
+## private.app_roles
+
+Phase 7.2 adds `private.app_roles` as the database-owned role-membership table for owner authorization.
+
+Columns:
+
+- `user_id` UUID
+- `role`
+- `created_at`
+
+Primary key:
+
+- `(user_id, role)`
+
+Foreign key:
+
+- `app_roles.user_id` references `auth.users.id`
+- `ON DELETE CASCADE`
+
+Supported roles:
+
+- `owner`
+
+`private.app_roles` is intentionally not stored in `public.profiles`. It has RLS enabled and no direct `anon` or `authenticated` table grants or client-facing table policies.
+
+## public.is_owner()
+
+Phase 7.2 adds `public.is_owner()` as the only client-facing owner check.
+
+The function:
+
+- accepts no arguments
+- uses `auth.uid()` internally
+- returns `false` for unauthenticated callers
+- returns only a boolean
+- does not expose role rows, user ids, email addresses, usernames, birthdays, or profile fields
+
+Future owner analytics must remain aggregate-only. Owner dashboard queries should use separate owner-guarded RPCs or views that independently enforce authorization and never return task or note content.
+
 ## RLS Ownership Model
 
 RLS is enabled on:
@@ -144,4 +183,3 @@ Possible future performance indexes, if query volume justifies them:
 - `todos.due_date`
 - `notes.user_id`
 - `notes.date`
-

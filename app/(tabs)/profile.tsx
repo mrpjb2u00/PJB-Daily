@@ -14,10 +14,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppCard, Divider, SectionLabel } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOwnerAuthorization } from '@/contexts/OwnerAuthorizationContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
 import { formatBirthday } from '@/utils/profile';
@@ -26,6 +28,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, logout, updateProfile } = useAuth();
+  const { isOwner, isOwnerLoading, ownerAuthorizationError } = useOwnerAuthorization();
   const { todos } = useTodos();
   const { notes } = useNotes();
   const [firstName, setFirstName] = useState('');
@@ -62,6 +65,11 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     logout();
+  };
+
+  const handleOpenOwnerAnalytics = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    router.push('/owner-analytics');
   };
 
   const handleRemoveBirthday = () => {
@@ -353,6 +361,33 @@ export default function ProfileScreen() {
         </AppCard>
 
         {/* ── SESSION ── */}
+        {isOwner && !isOwnerLoading && !ownerAuthorizationError && (
+          <>
+            <SectionLabel textStyle={styles.sectionLabelText}>Owner</SectionLabel>
+            <AppCard padding="none" style={styles.card}>
+              <Pressable
+                onPress={handleOpenOwnerAnalytics}
+                style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Open Owner Analytics"
+              >
+                <View style={[styles.iconWrap, { backgroundColor: theme.accentSecondary + '15' }]}>
+                  <Ionicons name="analytics-outline" size={18} color={theme.accentSecondary} />
+                </View>
+                <View style={styles.rowTextStack}>
+                  <Text style={[styles.rowLabel, { color: theme.text, fontFamily: 'Inter_500Medium' }]}>
+                    Owner Analytics
+                  </Text>
+                  <Text style={[styles.rowMeta, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                    Aggregate app insights
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+              </Pressable>
+            </AppCard>
+          </>
+        )}
+
         <SectionLabel textStyle={styles.sectionLabelText}>Session</SectionLabel>
         <AppCard padding="none" borderColor={theme.destructive + '35'} style={styles.card}>
           <Pressable

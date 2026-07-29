@@ -28,7 +28,8 @@ flowchart TD
   GestureHandlerRootView --> KeyboardProvider
   KeyboardProvider --> ThemeProvider
   ThemeProvider --> AuthProvider
-  AuthProvider --> CalendarProvider
+  AuthProvider --> OwnerAuthorizationProvider
+  OwnerAuthorizationProvider --> CalendarProvider
   CalendarProvider --> TodoProvider
   TodoProvider --> NotesProvider
   NotesProvider --> RootLayoutNav
@@ -84,6 +85,30 @@ The app uses public environment variable names:
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 
 Secret values must not be committed or printed.
+
+## Owner Authorization
+
+Phase 7.2 introduces a database-driven owner authorization foundation.
+
+Planned flow:
+
+```mermaid
+flowchart TD
+  App["Authenticated app"]
+  RPC["public.is_owner()"]
+  Result["Boolean owner status"]
+  UX["Owner-only navigation visibility"]
+
+  App --> RPC --> Result --> UX
+```
+
+Owner membership is stored in `private.app_roles`, not in `public.profiles`, and is not directly accessible from the mobile client. The mobile app calls `public.is_owner()` to decide whether to show owner-only UI.
+
+`OwnerAuthorizationProvider` consumes the authenticated user from `AuthContext`, calls `public.is_owner()` through the Supabase client after session restoration, refreshes owner authorization when the app returns to the foreground, and exposes boolean owner status to authenticated UI.
+
+The `/owner-analytics` route performs a fresh owner authorization check when opened or focused, then uses the same client-side owner status to decide which placeholder state to display. It does not query user content, profile data, to-dos, notes, or aggregate analytics.
+
+Navigation hiding and previously verified owner UI state are UX conveniences only. Future owner analytics RPCs must enforce owner authorization independently and return aggregate data only.
 
 ## Authentication And Profile Data Flow
 
@@ -154,4 +179,3 @@ Confirmed AsyncStorage usage includes:
 - Document exact recurrence edge cases and manual QA matrix.
 - Document production build and release flow after Phase 8.
 - Document owner analytics architecture after Phase 7.2 and 7.3.
-

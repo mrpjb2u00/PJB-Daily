@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { OwnerAuthorizationProvider } from "@/contexts/OwnerAuthorizationContext";
 import { TodoProvider } from "@/contexts/TodoContext";
 import { NotesProvider } from "@/contexts/NotesContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
@@ -66,6 +67,12 @@ function RootLayoutNav() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="owner-analytics"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
@@ -93,14 +100,16 @@ export default function RootLayout() {
           <KeyboardProvider>
             <ThemeProvider>
               <AuthProvider>
-                <CalendarProvider>
-                  <TodoProvider>
-                    <NotesProvider>
-                      <RootLayoutNav />
-                      <DailyBriefingController />
-                    </NotesProvider>
-                  </TodoProvider>
-                </CalendarProvider>
+                <OwnerAuthorizationProvider>
+                  <CalendarProvider>
+                    <TodoProvider>
+                      <NotesProvider>
+                        <RootLayoutNav />
+                        <DailyBriefingController />
+                      </NotesProvider>
+                    </TodoProvider>
+                  </CalendarProvider>
+                </OwnerAuthorizationProvider>
               </AuthProvider>
             </ThemeProvider>
           </KeyboardProvider>
