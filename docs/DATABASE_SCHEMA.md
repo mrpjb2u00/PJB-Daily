@@ -131,6 +131,22 @@ The function:
 
 Future owner analytics must remain aggregate-only. Owner dashboard queries should use separate owner-guarded RPCs or views that independently enforce authorization and never return task or note content.
 
+## public.owner_analytics_summary()
+
+Phase 7.3 adds `public.owner_analytics_summary()` as the first deployed owner analytics RPC.
+
+The function:
+
+- accepts no arguments
+- independently checks `public.is_owner()`
+- returns exactly one aggregate summary row
+- returns numeric and timestamp values only
+- does not return user IDs, email addresses, usernames, names, birthdays, auth metadata, to-do titles, note titles, note bodies, or raw rows
+
+The first summary includes aggregate counts for registered users, profiles, to-dos, completed/open to-dos, to-do completion rate, recurring to-dos, to-dos with due dates, notes, dated notes, and 30-day new-row counts.
+
+Mobile application integration reads this RPC through the owner analytics service. Active-user, login, platform, app-version, Daily Briefing engagement, and similar usage analytics are not supported by the current schema because there is no database-backed activity telemetry.
+
 ## RLS Ownership Model
 
 RLS is enabled on:

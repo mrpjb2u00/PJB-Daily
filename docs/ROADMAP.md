@@ -43,9 +43,16 @@ Progress:
 
 ### Phase 7.3 - Analytics Foundation
 
-Status: Planned
+Status: In Progress
 
 Goal: add aggregate-only analytics support while avoiding user-generated content exposure.
+
+Progress:
+
+- Owner analytics summary RPC: deployed.
+- Client analytics service: complete.
+- First owner analytics dashboard: complete.
+- Active-user, platform, app-version, login, and Daily Briefing engagement analytics: pending future activity telemetry design.
 
 ### Phase 7.4 - Owner Dashboard
 

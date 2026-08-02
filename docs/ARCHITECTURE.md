@@ -110,6 +110,12 @@ The `/owner-analytics` route performs a fresh owner authorization check when ope
 
 Navigation hiding and previously verified owner UI state are UX conveniences only. Future owner analytics RPCs must enforce owner authorization independently and return aggregate data only.
 
+Phase 7.3 introduces `lib/ownerAnalyticsService.ts`, which calls `public.owner_analytics_summary()` after the owner route has completed a fresh owner authorization check. The RPC returns one owner-authorized aggregate summary row and no individual user content, profile fields, auth metadata, note content, or to-do content.
+
+The owner analytics screen uses manual refresh only. Server-side authorization remains authoritative: the route and Profile entry are UX gates, while the analytics RPC independently enforces owner access before returning aggregate data.
+
+The current schema does not support active-user, login, platform, app-version, or Daily Briefing engagement analytics because no database-backed activity telemetry exists.
+
 ## Authentication And Profile Data Flow
 
 `AuthContext` is responsible for:

@@ -19,6 +19,12 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - Added an owner analytics placeholder route.
 - No aggregate analytics or user-content access was added.
 - Improved owner authorization refresh when the app returns to the foreground and when the owner route is opened.
+- Added the owner-only aggregate `public.owner_analytics_summary()` RPC migration.
+- Documented that the owner analytics summary RPC is deployed and integrated into the mobile app.
+- Added the aggregate owner analytics service.
+- Replaced the owner analytics placeholder with users, to-dos, notes, and completion summary cards.
+- Added manual owner analytics refresh with safe loading and error states.
+- No individual user content is exposed in owner analytics.
 
 ### Documented
 
@@ -27,6 +33,7 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - RLS ownership model for profiles, todos, and notes.
 - Future hardening recommendations for grants, function execution, policy checks, profile constraints, and possible indexes.
 - Phase 7 owner analytics principles.
+- Phase 7.3 aggregate-only owner analytics RPC design and unsupported activity-telemetry metrics.
 
 ### Changed
 
