@@ -25,6 +25,9 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - Replaced the owner analytics placeholder with users, to-dos, notes, and completion summary cards.
 - Added manual owner analytics refresh with safe loading and error states.
 - No individual user content is exposed in owner analytics.
+- Added the `public.owner_analytics_trends(start_date date, end_date date, bucket text)` RPC for aggregate owner analytics trend buckets.
+- Integrated the deployed owner analytics trends RPC into the owner dashboard with 7-day, 30-day, and 90-day range presets.
+- Added dashboard trend views for New Users, New To-Dos, and Completed To-Dos.
 
 ### Documented
 
@@ -34,6 +37,8 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - Future hardening recommendations for grants, function execution, policy checks, profile constraints, and possible indexes.
 - Phase 7 owner analytics principles.
 - Phase 7.3 aggregate-only owner analytics RPC design and unsupported activity-telemetry metrics.
+- Phase 7.4 owner analytics trends design: deployed RPC, `day`/`week`/`month` buckets, 366-day maximum inclusive range, zero-filled buckets, `last_completed_at` completion limitation, and no telemetry added.
+- Phase 7.4B owner analytics trends client integration, including displayed v1 trend metrics and continued full RPC response normalization for future metrics.
 
 ### Changed
 

@@ -60,6 +60,17 @@ Status: Planned
 
 Goal: build the owner-only analytics dashboard after owner authorization and aggregate analytics queries are in place.
 
+Phase 7.4 progress:
+
+- Owner analytics trends RPC: deployed.
+- Client trend integration: complete.
+- Supported trend buckets: `day`, `week`, and `month`.
+- Maximum inclusive trend range: 366 days.
+- Trend buckets are zero-filled.
+- First dashboard trend metrics: New Users, New To-Dos, and Completed To-Dos.
+- `completed_todos` uses `last_completed_at` and cannot represent historical repeated completion events.
+- No telemetry was added.
+
 ### Phase 8 - Production Release
 
 Status: Planned

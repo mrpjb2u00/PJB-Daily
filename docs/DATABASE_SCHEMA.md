@@ -147,6 +147,32 @@ The first summary includes aggregate counts for registered users, profiles, to-d
 
 Mobile application integration reads this RPC through the owner analytics service. Active-user, login, platform, app-version, Daily Briefing engagement, and similar usage analytics are not supported by the current schema because there is no database-backed activity telemetry.
 
+## public.owner_analytics_trends(start_date date, end_date date, bucket text)
+
+Phase 7.4 adds `public.owner_analytics_trends(start_date date, end_date date, bucket text)` for deployed owner analytics trend buckets.
+
+The function:
+
+- independently checks `public.is_owner()`
+- supports `day`, `week`, and `month` buckets
+- accepts an inclusive date range of at most 366 days
+- validates invalid parameters with SQLSTATE `22023`
+- returns zero-filled buckets ordered by `bucket_start` ascending
+- returns aggregate counts only
+- does not add telemetry or return user IDs, email addresses, usernames, names, birthdays, auth metadata, to-do titles, note titles, note bodies, or raw rows
+
+Return columns:
+
+- `bucket_start`
+- `new_registered_users`
+- `new_profiles`
+- `new_todos`
+- `completed_todos`
+- `new_notes`
+- `dated_notes`
+
+`completed_todos` uses `public.todos.last_completed_at`, so it can count only the latest recorded completion timestamp per to-do and cannot reconstruct historical repeated completion events. Phase 7.4B client integration displays New Users, New To-Dos, and Completed To-Dos trends while normalizing the full RPC response for future metric expansion.
+
 ## RLS Ownership Model
 
 RLS is enabled on:

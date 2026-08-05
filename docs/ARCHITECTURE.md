@@ -114,7 +114,13 @@ Phase 7.3 introduces `lib/ownerAnalyticsService.ts`, which calls `public.owner_a
 
 The owner analytics screen uses manual refresh only. Server-side authorization remains authoritative: the route and Profile entry are UX gates, while the analytics RPC independently enforces owner access before returning aggregate data.
 
+Phase 7.4 adds `public.owner_analytics_trends(start_date date, end_date date, bucket text)` for owner-authorized aggregate trend buckets. The RPC supports `day`, `week`, and `month` buckets over a maximum inclusive range of 366 days, generates zero-filled buckets, and returns aggregate trend counts only. `completed_todos` is based on `public.todos.last_completed_at`, which records only the latest completion timestamp available on each to-do.
+
+Phase 7.4B integrates trend data into the owner analytics dashboard. The first UI release shows New Users, New To-Dos, and Completed To-Dos trends with 7-day, 30-day, and 90-day range presets. The client still normalizes the full RPC response, including note trend fields, so future releases can expand the displayed metrics without changing the server contract.
+
 The current schema does not support active-user, login, platform, app-version, or Daily Briefing engagement analytics because no database-backed activity telemetry exists.
+
+No Phase 7.4 telemetry is added. Trend analytics are derived only from existing auth user creation timestamps, profile creation timestamps, to-do creation and last-completion timestamps, note creation timestamps, and note dates.
 
 ## Authentication And Profile Data Flow
 
@@ -184,4 +190,4 @@ Confirmed AsyncStorage usage includes:
 - Complete screen-by-screen UX architecture.
 - Document exact recurrence edge cases and manual QA matrix.
 - Document production build and release flow after Phase 8.
-- Document owner analytics architecture after Phase 7.2 and 7.3.
+- Document owner analytics architecture after Phase 7.2, 7.3, and 7.4.
