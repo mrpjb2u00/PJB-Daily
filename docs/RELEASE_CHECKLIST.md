@@ -39,12 +39,17 @@ Initial checklist for preparing PJB Daily for Apple App Store and Google Play re
 - [ ] Grants are reviewed for unnecessary privileges.
 - [ ] Trigger function execute privileges are reviewed.
 - [ ] Account deletion strategy is defined.
+- [x] Account deletion Edge Function is deployed with server-side secrets only.
+- [x] Disposable account deletion and database cascades are verified.
+- [x] Account deletion Profile UI, password re-entry, final confirmation, and route-to-auth cleanup are implemented.
+- [ ] Account deletion is verified on production-like phone and tablet builds.
 
 ## Privacy And Compliance
 
 - [ ] Privacy Policy is current.
 - [ ] Google Play Data Safety form is current.
 - [ ] App Store Privacy labels are current.
+- [ ] Account deletion and data deletion behavior are reflected in store privacy disclosures.
 - [ ] Analytics collection is disclosed before release.
 - [ ] Crash reporting collection is disclosed before release, if added.
 - [ ] User-generated task/note content is not included in analytics.
@@ -96,4 +101,3 @@ Initial checklist for preparing PJB Daily for Apple App Store and Google Play re
 - [ ] Database backup plan is defined.
 - [ ] Owner analytics access is restricted.
 - [ ] Release notes are prepared.
-

@@ -173,6 +173,21 @@ Return columns:
 
 `completed_todos` uses `public.todos.last_completed_at`, so it can count only the latest recorded completion timestamp per to-do and cannot reconstruct historical repeated completion events. Phase 7.4B client integration displays New Users, New To-Dos, and Completed To-Dos trends while normalizing the full RPC response for future metric expansion.
 
+## Account Lifecycle
+
+Phase 8.2 adds a Supabase Edge Function named `delete-account`. It is deployed with JWT verification enabled, and the Profile screen integrates the production Delete Account flow with password re-entry and final confirmation.
+
+The function deletes only the currently authenticated Supabase Auth caller through server-side privileged credentials. It does not accept a user id, email address, or deletion target from the request body. Owner self-deletion is blocked before the auth user deletion step.
+
+No new deletion, telemetry, or audit table exists in v1. When a non-owner auth user is deleted, existing foreign keys cascade server-owned user data:
+
+- `public.profiles.id` references `auth.users.id` with `ON DELETE CASCADE`
+- `public.todos.user_id` references `auth.users.id` with `ON DELETE CASCADE`
+- `public.notes.user_id` references `auth.users.id` with `ON DELETE CASCADE`
+- `private.app_roles.user_id` references `auth.users.id` with `ON DELETE CASCADE`
+
+Client-side local cleanup runs only after the deployed function confirms deletion. Owner-blocked, unauthorized, network, and server-failure responses preserve local state.
+
 ## RLS Ownership Model
 
 RLS is enabled on:

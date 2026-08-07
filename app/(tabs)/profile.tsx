@@ -9,6 +9,8 @@ import {
   Switch,
   TextInput,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,12 +24,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOwnerAuthorization } from '@/contexts/OwnerAuthorizationContext';
 import { useTodos } from '@/contexts/TodoContext';
 import { useNotes } from '@/contexts/NotesContext';
+import { deleteCurrentAccount } from '@/lib/accountDeletionService';
+import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 import { formatBirthday } from '@/utils/profile';
+
+type DeleteAccountStep = 'closed' | 'warning' | 'password' | 'confirm';
+
+const OWNER_DELETE_BLOCKED_MESSAGE =
+  'This account is currently designated as the application owner and cannot be deleted. Transfer ownership or contact support before deleting this account.';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, updateProfile, resetAfterAccountDeletion } = useAuth();
   const { isOwner, isOwnerLoading, ownerAuthorizationError } = useOwnerAuthorization();
   const { todos } = useTodos();
   const { notes } = useNotes();
@@ -38,6 +47,12 @@ export default function ProfileScreen() {
   const [profileMessage, setProfileMessage] = useState('');
   const [profileError, setProfileError] = useState('');
   const [profileSubmitting, setProfileSubmitting] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<DeleteAccountStep>('closed');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteMessage, setDeleteMessage] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [reauthSubmitting, setReauthSubmitting] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const topPad = Platform.OS === 'web' ? webTopInset : Math.max(insets.top, 24);
@@ -65,6 +80,97 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     logout();
+  };
+
+  const openDeleteAccountFlow = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDeleteMessage('');
+    setDeleteError('');
+    setDeletePassword('');
+    setDeleteStep('warning');
+  };
+
+  const closeDeleteAccountFlow = () => {
+    if (reauthSubmitting || deleteSubmitting) return;
+    setDeleteStep('closed');
+    setDeletePassword('');
+    setDeleteError('');
+  };
+
+  const continueToPassword = () => {
+    setDeleteError('');
+    setDeletePassword('');
+    setDeleteStep('password');
+  };
+
+  const handlePasswordReauthentication = async () => {
+    if (reauthSubmitting || deleteSubmitting) return;
+    const email = user?.email?.trim().toLowerCase();
+
+    if (!email || !deletePassword) {
+      setDeleteError('Enter your password to continue.');
+      return;
+    }
+
+    if (!supabaseConfigured) {
+      setDeleteError('Account deletion is not available right now. Please try again later.');
+      return;
+    }
+
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setDeleteError('');
+    setReauthSubmitting(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: deletePassword,
+    });
+    setReauthSubmitting(false);
+
+    if (error) {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setDeleteError('That password was not accepted. Please check it and try again.');
+      return;
+    }
+
+    setDeletePassword('');
+    setDeleteStep('confirm');
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    if (deleteSubmitting || reauthSubmitting) return;
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+    setDeleteError('');
+    setDeleteSubmitting(true);
+    const result = await deleteCurrentAccount();
+
+    if (result.status === 'deleted') {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setDeleteStep('closed');
+      setDeletePassword('');
+      setDeleteSubmitting(false);
+      await resetAfterAccountDeletion();
+      router.replace('/');
+      return;
+    }
+
+    setDeleteSubmitting(false);
+
+    if (result.status === 'owner_blocked') {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      setDeleteStep('closed');
+      setDeleteMessage(OWNER_DELETE_BLOCKED_MESSAGE);
+      return;
+    }
+
+    if (result.status === 'unauthorized') {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setDeleteError('Your session needs to be refreshed before deleting this account. Please sign in again and retry.');
+      return;
+    }
+
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    setDeleteError('We could not delete your account right now. Check your connection and try again.');
   };
 
   const handleOpenOwnerAnalytics = () => {
@@ -388,6 +494,39 @@ export default function ProfileScreen() {
           </>
         )}
 
+        <SectionLabel textStyle={styles.sectionLabelText}>Account Management</SectionLabel>
+        <AppCard padding="none" borderColor={theme.destructive + '35'} style={styles.card}>
+          <Pressable
+            onPress={openDeleteAccountFlow}
+            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Delete Account"
+            accessibilityHint="Opens account deletion information and confirmation"
+          >
+            <View style={[styles.iconWrap, { backgroundColor: theme.destructive + '15' }]}>
+              <Ionicons name="trash-outline" size={18} color={theme.destructive} />
+            </View>
+            <View style={styles.rowTextStack}>
+              <Text style={[styles.rowLabel, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
+                Delete Account
+              </Text>
+              <Text style={[styles.rowMeta, { color: theme.textTertiary, fontFamily: 'Inter_400Regular' }]}>
+                Permanently remove your account and data
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.destructive + '80'} />
+          </Pressable>
+        </AppCard>
+
+        {!!deleteMessage && (
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[styles.accountFeedbackText, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+          >
+            {deleteMessage}
+          </Text>
+        )}
+
         <SectionLabel textStyle={styles.sectionLabelText}>Session</SectionLabel>
         <AppCard padding="none" borderColor={theme.destructive + '35'} style={styles.card}>
           <Pressable
@@ -412,6 +551,223 @@ export default function ProfileScreen() {
         </Text>
 
       </ScrollView>
+
+      <Modal
+        visible={deleteStep !== 'closed'}
+        transparent
+        animationType="fade"
+        onRequestClose={closeDeleteAccountFlow}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={closeDeleteAccountFlow}
+            accessible={false}
+            importantForAccessibility="no"
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalKeyboard}
+          >
+            <View
+              style={[styles.deleteSheet, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              accessibilityViewIsModal
+            >
+              {deleteStep === 'warning' && (
+                <>
+                  <View style={[styles.warningIcon, { backgroundColor: theme.destructive + '15' }]}>
+                    <Ionicons name="warning-outline" size={24} color={theme.destructive} />
+                  </View>
+                  <Text style={[styles.modalTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                    Delete your account
+                  </Text>
+                  <Text style={[styles.modalBody, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                    Deleting your account permanently removes your profile, all To-Dos, all Notes, and Daily Briefing account history.
+                  </Text>
+                  <Text style={[styles.modalBodyStrong, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
+                    This action cannot be undone.
+                  </Text>
+                  <View style={styles.modalActions}>
+                    <Pressable
+                      onPress={closeDeleteAccountFlow}
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancel account deletion"
+                      style={({ pressed }) => [
+                        styles.secondaryButton,
+                        { borderColor: theme.border, opacity: pressed ? 0.75 : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.secondaryButtonText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+                        Cancel
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={continueToPassword}
+                      accessibilityRole="button"
+                      accessibilityLabel="Continue account deletion"
+                      style={({ pressed }) => [
+                        styles.destructiveButton,
+                        { backgroundColor: theme.destructive, opacity: pressed ? 0.85 : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.destructiveButtonText, { fontFamily: 'Inter_700Bold' }]}>
+                        Continue
+                      </Text>
+                    </Pressable>
+                  </View>
+                </>
+              )}
+
+              {deleteStep === 'password' && (
+                <>
+                  <Text style={[styles.modalTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                    Confirm Your Password
+                  </Text>
+                  <Text style={[styles.modalBody, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                    Re-enter the password for {user?.email || 'your account'} before continuing.
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: theme.inputBg,
+                        color: theme.text,
+                        borderColor: theme.border,
+                        fontFamily: 'Inter_400Regular',
+                      },
+                    ]}
+                    placeholder="Password"
+                    placeholderTextColor={theme.textTertiary}
+                    value={deletePassword}
+                    onChangeText={(value) => {
+                      setDeletePassword(value);
+                      setDeleteError('');
+                    }}
+                    secureTextEntry
+                    textContentType="password"
+                    autoComplete="current-password"
+                    returnKeyType="done"
+                    editable={!reauthSubmitting}
+                    accessibilityLabel="Current password"
+                    onSubmitEditing={handlePasswordReauthentication}
+                  />
+                  {!!deleteError && (
+                    <Text
+                      accessibilityLiveRegion="polite"
+                      style={[styles.modalError, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+                    >
+                      {deleteError}
+                    </Text>
+                  )}
+                  <View style={styles.modalActions}>
+                    <Pressable
+                      onPress={closeDeleteAccountFlow}
+                      disabled={reauthSubmitting}
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancel account deletion"
+                      accessibilityState={{ disabled: reauthSubmitting }}
+                      style={({ pressed }) => [
+                        styles.secondaryButton,
+                        { borderColor: theme.border, opacity: reauthSubmitting ? 0.55 : pressed ? 0.75 : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.secondaryButtonText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+                        Cancel
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={handlePasswordReauthentication}
+                      disabled={reauthSubmitting || !deletePassword}
+                      accessibilityRole="button"
+                      accessibilityLabel="Continue after password confirmation"
+                      accessibilityState={{ disabled: reauthSubmitting || !deletePassword, busy: reauthSubmitting }}
+                      style={({ pressed }) => [
+                        styles.destructiveButton,
+                        {
+                          backgroundColor: theme.destructive,
+                          opacity: reauthSubmitting || !deletePassword ? 0.55 : pressed ? 0.85 : 1,
+                        },
+                      ]}
+                    >
+                      {reauthSubmitting ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={[styles.destructiveButtonText, { fontFamily: 'Inter_700Bold' }]}>
+                          Continue
+                        </Text>
+                      )}
+                    </Pressable>
+                  </View>
+                </>
+              )}
+
+              {deleteStep === 'confirm' && (
+                <>
+                  <View style={[styles.warningIcon, { backgroundColor: theme.destructive + '15' }]}>
+                    <Ionicons name="trash-outline" size={24} color={theme.destructive} />
+                  </View>
+                  <Text style={[styles.modalTitle, { color: theme.text, fontFamily: 'Inter_700Bold' }]}>
+                    Delete Account
+                  </Text>
+                  <Text style={[styles.modalBody, { color: theme.textSecondary, fontFamily: 'Inter_400Regular' }]}>
+                    This will permanently delete your account and all associated data.
+                  </Text>
+                  <Text style={[styles.modalBodyStrong, { color: theme.destructive, fontFamily: 'Inter_600SemiBold' }]}>
+                    This action cannot be undone.
+                  </Text>
+                  {!!deleteError && (
+                    <Text
+                      accessibilityLiveRegion="polite"
+                      style={[styles.modalError, { color: theme.destructive, fontFamily: 'Inter_500Medium' }]}
+                    >
+                      {deleteError}
+                    </Text>
+                  )}
+                  <View style={styles.modalActions}>
+                    <Pressable
+                      onPress={closeDeleteAccountFlow}
+                      disabled={deleteSubmitting}
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancel final account deletion"
+                      accessibilityState={{ disabled: deleteSubmitting }}
+                      style={({ pressed }) => [
+                        styles.secondaryButton,
+                        { borderColor: theme.border, opacity: deleteSubmitting ? 0.55 : pressed ? 0.75 : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.secondaryButtonText, { color: theme.text, fontFamily: 'Inter_600SemiBold' }]}>
+                        Cancel
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={handleConfirmDeleteAccount}
+                      disabled={deleteSubmitting}
+                      accessibilityRole="button"
+                      accessibilityLabel="Permanently delete account"
+                      accessibilityState={{ disabled: deleteSubmitting, busy: deleteSubmitting }}
+                      style={({ pressed }) => [
+                        styles.destructiveButton,
+                        {
+                          backgroundColor: theme.destructive,
+                          opacity: deleteSubmitting ? 0.55 : pressed ? 0.85 : 1,
+                        },
+                      ]}
+                    >
+                      {deleteSubmitting ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={[styles.destructiveButtonText, { fontFamily: 'Inter_700Bold' }]}>
+                          Delete Account
+                        </Text>
+                      )}
+                    </Pressable>
+                  </View>
+                </>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -544,6 +900,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     textAlign: 'center',
   },
+  accountFeedbackText: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: -12,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
   saveButton: {
     minHeight: 48,
     borderRadius: 12,
@@ -591,5 +954,85 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalKeyboard: {
+    justifyContent: 'center',
+  },
+  deleteSheet: {
+    width: '100%',
+    maxWidth: 460,
+    alignSelf: 'center',
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    gap: 14,
+  },
+  warningIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  modalBodyStrong: {
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  modalError: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  secondaryButton: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  destructiveButton: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  destructiveButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    textAlign: 'center',
   },
 });

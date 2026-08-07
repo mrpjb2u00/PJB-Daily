@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { supabase, supabaseConfigured } from '@/lib/supabaseClient';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { ensureProfile, fetchProfile, saveProfile, type Profile } from '@/lib/profileService';
+import { clearAccountLocalState } from '@/lib/accountLocalCleanup';
 import { validateProfileInput } from '@/utils/profile';
 
 interface User {
@@ -30,6 +31,7 @@ interface AuthContextValue {
     birthday?: { month: number; day: number } | null,
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  resetAfterAccountDeletion: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -208,6 +210,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const resetAfterAccountDeletion = useCallback(async () => {
+    const deletedUserId = authUser?.id ?? null;
+
+    if (supabaseConfigured) {
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // The server-side user may already be gone; local cleanup still must continue.
+      }
+    }
+
+    await clearAccountLocalState(deletedUserId);
+    setAuthUser(null);
+    setProfile(null);
+    setIsLoading(false);
+  }, [authUser?.id]);
+
   const user = useMemo(() => authUserToUser(authUser, profile), [authUser, profile]);
 
   const value = useMemo(() => ({
@@ -217,7 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     updateProfile,
     logout,
-  }), [user, isLoading, login, register, updateProfile, logout]);
+    resetAfterAccountDeletion,
+  }), [user, isLoading, login, register, updateProfile, logout, resetAfterAccountDeletion]);
 
   return (
     <AuthContext.Provider value={value}>

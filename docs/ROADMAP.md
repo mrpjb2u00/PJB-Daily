@@ -77,6 +77,17 @@ Status: Planned
 
 Goal: complete app-store readiness, final release QA, privacy disclosures, production builds, and post-release monitoring.
 
+Phase 8.2 account and data lifecycle progress:
+
+- Server-side `delete-account` Edge Function exists locally.
+- The function is deployed.
+- A disposable non-owner deletion test verified auth deletion and cascades for profile, to-do, note, and app-role rows.
+- The function deletes only the authenticated caller and blocks owner self-deletion.
+- Existing database cascades handle profile, to-do, note, and app-role cleanup after auth user deletion.
+- Client deletion service and local cleanup helper exist.
+- Profile Delete Account UI, password re-entry, final confirmation, and route-to-auth cleanup are implemented.
+- Store-policy validation and final real-device account deletion QA remain pending.
+
 ## Long-Term Candidates
 
 - Account deletion and full data deletion flow

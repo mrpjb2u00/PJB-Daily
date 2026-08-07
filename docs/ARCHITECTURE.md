@@ -150,6 +150,20 @@ sequenceDiagram
   AuthContext-->>App: app user state
 ```
 
+## Account Deletion
+
+Phase 8.2 Step 1 adds a Supabase Edge Function at `supabase/functions/delete-account/index.ts`. The function is deployed and a disposable non-owner deletion test verified Auth deletion plus database cascades.
+
+The function is the planned privileged server-side entry point for account deletion. It requires an authenticated request, validates the caller's Supabase session, derives the deletion target only from that authenticated caller, and never accepts a client-supplied user id or email target. The mobile app must not contain a service-role key.
+
+The function uses `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` only from the Edge Function environment. The service-role credential is used server-side to delete the authenticated caller through Supabase Auth Admin APIs. Existing database `ON DELETE CASCADE` relationships then remove the caller's `profiles`, `todos`, `notes`, and `private.app_roles` rows.
+
+Phase 8.2 Step 2 adds `lib/accountDeletionService.ts` as the client wrapper for the deployed function and `lib/accountLocalCleanup.ts` as the local account-specific cleanup helper. Local cleanup removes the Supabase auth session, remembered auth email, new task and note drafts, and Daily Briefing viewed keys for the deleted user while preserving app-wide theme preference.
+
+Phase 8.2 Step 3 adds the Profile screen Delete Account experience. The user sees a destructive warning, re-enters the current email/password account password, and confirms one final dialog before the client calls `deleteCurrentAccount()`. Local cleanup and route-to-auth behavior run only after the deployed function returns a confirmed deleted result.
+
+Owner self-deletion is blocked in v1. The function checks owner authorization server-side before deletion and returns a generic blocked response for owner accounts. Owner-blocked, unauthorized, network, and server-failure responses do not clear local state. Final real-device QA and store-policy validation remain pending.
+
 ## To-Do And Note Data Flow
 
 `TodoContext` and `NotesContext` load rows for the authenticated user from Supabase and expose CRUD operations to screens.

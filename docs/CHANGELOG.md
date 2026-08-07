@@ -28,6 +28,9 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - Added the `public.owner_analytics_trends(start_date date, end_date date, bucket text)` RPC for aggregate owner analytics trend buckets.
 - Integrated the deployed owner analytics trends RPC into the owner dashboard with 7-day, 30-day, and 90-day range presets.
 - Added dashboard trend views for New Users, New To-Dos, and Completed To-Dos.
+- Added a local `delete-account` Supabase Edge Function for Phase 8.2 server-side account deletion.
+- Added the client account deletion service and local account cleanup helper for Phase 8.2.
+- Added the Profile Delete Account flow with warning copy, password re-entry, final confirmation, and confirmed-deletion local cleanup.
 
 ### Documented
 
@@ -39,6 +42,7 @@ This changelog follows a Keep a Changelog-inspired structure. Dates and release 
 - Phase 7.3 aggregate-only owner analytics RPC design and unsupported activity-telemetry metrics.
 - Phase 7.4 owner analytics trends design: deployed RPC, `day`/`week`/`month` buckets, 366-day maximum inclusive range, zero-filled buckets, `last_completed_at` completion limitation, and no telemetry added.
 - Phase 7.4B owner analytics trends client integration, including displayed v1 trend metrics and continued full RPC response normalization for future metrics.
+- Phase 8.2 account deletion status: the Edge Function is deployed, disposable-user deletion and cascades were verified, client service, Profile UI, password confirmation, final confirmation, and local cleanup exist, owner self-deletion remains blocked, and final device/store-policy QA is still pending.
 
 ### Changed
 
