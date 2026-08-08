@@ -86,6 +86,8 @@ The app uses public environment variable names:
 
 Secret values must not be committed or printed.
 
+Phase 8.3.1 adds startup validation for these public Supabase values. The app no longer silently initializes with placeholder Supabase configuration; missing, blank, malformed, or placeholder values block normal provider/auth rendering and show a controlled configuration error screen. Real values remain external and untracked. EAS environment setup is still pending for Phase 8.3.2.
+
 ## Owner Authorization
 
 Phase 7.2 introduces a database-driven owner authorization foundation.

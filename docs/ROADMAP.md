@@ -88,6 +88,13 @@ Phase 8.2 account and data lifecycle progress:
 - Profile Delete Account UI, password re-entry, final confirmation, and route-to-auth cleanup are implemented.
 - Store-policy validation and final real-device account deletion QA remain pending.
 
+Phase 8.3 production configuration progress:
+
+- Supabase public environment validation is implemented.
+- Placeholder Supabase configuration no longer initializes silently.
+- Invalid production configuration is blocked at app startup with controlled UI.
+- EAS environment setup, deep-link configuration, and password-reset redirect completion remain pending.
+
 ## Long-Term Candidates
 
 - Account deletion and full data deletion flow

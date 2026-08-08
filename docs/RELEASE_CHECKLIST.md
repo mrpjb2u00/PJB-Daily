@@ -15,6 +15,7 @@ Initial checklist for preparing PJB Daily for Apple App Store and Google Play re
 
 - [ ] Production Supabase URL is configured through approved environment management.
 - [ ] Production Supabase anon key is configured through approved environment management.
+- [x] Missing, malformed, or placeholder Supabase public configuration is blocked at app startup.
 - [ ] No service-role key exists in the mobile app.
 - [ ] `.env` files are ignored by Git.
 - [ ] EAS project identifiers are verified.

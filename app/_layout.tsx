@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import ConfigurationErrorScreen from "@/components/ConfigurationErrorScreen";
 import { queryClient } from "@/lib/query-client";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,7 @@ import { TodoProvider } from "@/contexts/TodoContext";
 import { NotesProvider } from "@/contexts/NotesContext";
 import { CalendarProvider } from "@/contexts/CalendarContext";
 import DailyBriefingController from "@/components/DailyBriefingController";
+import { supabaseConfig } from "@/lib/supabaseClient";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -77,6 +79,27 @@ function RootLayoutNav() {
   );
 }
 
+function AppProviders() {
+  if (!supabaseConfig.valid) {
+    return <ConfigurationErrorScreen config={supabaseConfig} />;
+  }
+
+  return (
+    <AuthProvider>
+      <OwnerAuthorizationProvider>
+        <CalendarProvider>
+          <TodoProvider>
+            <NotesProvider>
+              <RootLayoutNav />
+              <DailyBriefingController />
+            </NotesProvider>
+          </TodoProvider>
+        </CalendarProvider>
+      </OwnerAuthorizationProvider>
+    </AuthProvider>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -99,18 +122,7 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <KeyboardProvider>
             <ThemeProvider>
-              <AuthProvider>
-                <OwnerAuthorizationProvider>
-                  <CalendarProvider>
-                    <TodoProvider>
-                      <NotesProvider>
-                        <RootLayoutNav />
-                        <DailyBriefingController />
-                      </NotesProvider>
-                    </TodoProvider>
-                  </CalendarProvider>
-                </OwnerAuthorizationProvider>
-              </AuthProvider>
+              <AppProviders />
             </ThemeProvider>
           </KeyboardProvider>
         </GestureHandlerRootView>
